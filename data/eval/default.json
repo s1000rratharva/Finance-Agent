@@ -1,0 +1,50 @@
+[
+  {
+    "question": "What was Reliance Industries' revenue in FY2025?",
+    "reference": "Reliance Industries reported revenue of ₹964,643 crore in FY2025.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "How did TCS net profit grow from FY2021 to FY2025?",
+    "reference": "TCS net profit grew from ₹32,340 crore in FY2021 to ₹48,805 crore in FY2025, a CAGR of roughly 10.9%.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "Which company has the highest debt-to-equity ratio?",
+    "reference": "Reliance has by far the highest leverage owing to its capital-intensive oil-to-chemicals business, while TCS and Infosys carry minimal debt relative to equity.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "Compare the operating margins of TCS and Infosys over the last five years.",
+    "reference": "TCS has consistently operated at a materially higher operating margin than Infosys across FY2021-FY2025, reflecting its larger scale and delivery mix.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "Is Reliance generating free cash flow?",
+    "reference": "Reliance's operating cash flow is consistently positive but large capex on new energy and retail has kept free cash flow negative across FY2021-FY2025.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "What are the main liquidity risks for Infosys?",
+    "reference": "Infosys shows a comfortable current ratio and a large cash pile, so near-term liquidity risk is low; the main watch item is IT spending cycles affecting growth.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "Which company converts profit into cash most efficiently?",
+    "reference": "TCS and Infosys both convert profit into cash efficiently with operating cash flow comfortably exceeding net profit; Reliance's conversion is lower because of working capital intensity.",
+    "context": [],
+    "answer": null
+  },
+  {
+    "question": "What is the EPS trend for TCS?",
+    "reference": "TCS EPS rose steadily from ₹86.6 in FY2021 to ₹133.1 in FY2025.",
+    "context": [],
+    "answer": null
+  }
+]

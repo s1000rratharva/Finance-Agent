@@ -1,0 +1,12 @@
+# Optional: RAGAS evaluation stack.
+#
+#   pip install -r requirements-eval.txt
+#
+# Install this in the Docker image (Python 3.12) or a dedicated venv. On
+# Python >= 3.13 `scikit-network` (a ragas dependency) has no prebuilt wheels,
+# so `app.services.evaluation` falls back to retrieval-only metrics instead.
+
+-r requirements.txt
+
+ragas>=0.4,<0.5
+datasets>=3.4

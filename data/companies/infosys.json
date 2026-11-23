@@ -1,0 +1,78 @@
+{
+  "slug": "infosys",
+  "ticker": "INFY",
+  "name": "Infosys Limited",
+  "sector": "Information Technology",
+  "industry": "IT Services & Consulting",
+  "exchange": "NSE/BSE",
+  "currency": "INR",
+  "description": "Global IT services and consulting firm with large cloud, data and AI-led transformation practices.",
+  "source": "Illustrative sample data derived from annual reports - verify before production use",
+  "statements": [
+    {
+      "fiscal_year": 2021, "period": "FY", "as_of": "2021-03-31",
+      "revenue": 100472, "cost_of_revenue": 63903, "gross_profit": 36569,
+      "operating_expenses": 14087, "operating_profit": 22482,
+      "interest_expense": 506, "depreciation_amortization": 4739,
+      "profit_before_tax": 24542, "tax_expense": 5191, "net_profit": 19351, "eps": 45.2,
+      "total_assets": 116352, "total_liabilities": 38510, "total_equity": 77842,
+      "total_debt": 15013, "cash_and_equivalents": 33186,
+      "current_assets": 73478, "current_liabilities": 25801, "inventory": 503,
+      "operating_cash_flow": 26853, "investing_cash_flow": -16478,
+      "financing_cash_flow": -9073, "capex": 3637, "free_cash_flow": 23216,
+      "market_cap": 610000, "dividend_payout_ratio": 0.54
+    },
+    {
+      "fiscal_year": 2022, "period": "FY", "as_of": "2022-03-31",
+      "revenue": 121641, "cost_of_revenue": 76419, "gross_profit": 45222,
+      "operating_expenses": 17043, "operating_profit": 28179,
+      "interest_expense": 537, "depreciation_amortization": 5089,
+      "profit_before_tax": 28384, "tax_expense": 6274, "net_profit": 22110, "eps": 51.8,
+      "total_assets": 134084, "total_liabilities": 44032, "total_equity": 90052,
+      "total_debt": 15483, "cash_and_equivalents": 38971,
+      "current_assets": 83459, "current_liabilities": 29655, "inventory": 559,
+      "operating_cash_flow": 29176, "investing_cash_flow": -18943,
+      "financing_cash_flow": -9681, "capex": 4394, "free_cash_flow": 24782,
+      "market_cap": 720000, "dividend_payout_ratio": 0.55
+    },
+    {
+      "fiscal_year": 2023, "period": "FY", "as_of": "2023-03-31",
+      "revenue": 146767, "cost_of_revenue": 92389, "gross_profit": 54378,
+      "operating_expenses": 20716, "operating_profit": 33662,
+      "interest_expense": 581, "depreciation_amortization": 5578,
+      "profit_before_tax": 33583, "tax_expense": 9488, "net_profit": 24095, "eps": 56.3,
+      "total_assets": 152130, "total_liabilities": 51074, "total_equity": 101056,
+      "total_debt": 16012, "cash_and_equivalents": 41127,
+      "current_assets": 94016, "current_liabilities": 34119, "inventory": 611,
+      "operating_cash_flow": 29514, "investing_cash_flow": -20631,
+      "financing_cash_flow": -10743, "capex": 5157, "free_cash_flow": 24357,
+      "market_cap": 570000, "dividend_payout_ratio": 0.58
+    },
+    {
+      "fiscal_year": 2024, "period": "FY", "as_of": "2024-03-31",
+      "revenue": 153670, "cost_of_revenue": 96493, "gross_profit": 57177,
+      "operating_expenses": 21936, "operating_profit": 35241,
+      "interest_expense": 604, "depreciation_amortization": 5962,
+      "profit_before_tax": 36425, "tax_expense": 10192, "net_profit": 26233, "eps": 61.6,
+      "total_assets": 164577, "total_liabilities": 54861, "total_equity": 109716,
+      "total_debt": 16549, "cash_and_equivalents": 45673,
+      "current_assets": 100379, "current_liabilities": 36298, "inventory": 648,
+      "operating_cash_flow": 31775, "investing_cash_flow": -22394,
+      "financing_cash_flow": -11682, "capex": 5819, "free_cash_flow": 25956,
+      "market_cap": 640000, "dividend_payout_ratio": 0.60
+    },
+    {
+      "fiscal_year": 2025, "period": "FY", "as_of": "2025-03-31",
+      "revenue": 162990, "cost_of_revenue": 101872, "gross_profit": 61118,
+      "operating_expenses": 23218, "operating_profit": 37900,
+      "interest_expense": 627, "depreciation_amortization": 6371,
+      "profit_before_tax": 38155, "tax_expense": 11405, "net_profit": 26750, "eps": 63.2,
+      "total_assets": 175844, "total_liabilities": 57936, "total_equity": 117908,
+      "total_debt": 16874, "cash_and_equivalents": 49216,
+      "current_assets": 106952, "current_liabilities": 38427, "inventory": 672,
+      "operating_cash_flow": 33614, "investing_cash_flow": -23817,
+      "financing_cash_flow": -12451, "capex": 6248, "free_cash_flow": 27366,
+      "market_cap": 670000, "dividend_payout_ratio": 0.62
+    }
+  ]
+}

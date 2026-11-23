@@ -1,0 +1,78 @@
+{
+  "slug": "reliance-industries",
+  "ticker": "RELIANCE",
+  "name": "Reliance Industries Limited",
+  "sector": "Energy",
+  "industry": "Diversified Conglomerate",
+  "exchange": "NSE/BSE",
+  "currency": "INR",
+  "description": "India's largest company by market cap, spanning oil-to-chemicals, retail, digital services (Jio) and new energy.",
+  "source": "Illustrative sample data derived from annual reports - verify before production use",
+  "statements": [
+    {
+      "fiscal_year": 2021, "period": "FY", "as_of": "2021-03-31",
+      "revenue": 486326, "cost_of_revenue": 354433, "gross_profit": 131893,
+      "operating_expenses": 57308, "operating_profit": 74585,
+      "interest_expense": 18541, "depreciation_amortization": 31192,
+      "profit_before_tax": 63976, "tax_expense": 13548, "net_profit": 53739, "eps": 79.7,
+      "total_assets": 1321210, "total_liabilities": 806665, "total_equity": 514545,
+      "total_debt": 251613, "cash_and_equivalents": 204641,
+      "current_assets": 422985, "current_liabilities": 249910, "inventory": 80169,
+      "operating_cash_flow": 96718, "investing_cash_flow": -110842,
+      "financing_cash_flow": 8204, "capex": 132174, "free_cash_flow": -35456,
+      "market_cap": 1345000, "dividend_payout_ratio": 0.09
+    },
+    {
+      "fiscal_year": 2022, "period": "FY", "as_of": "2022-03-31",
+      "revenue": 721634, "cost_of_revenue": 523687, "gross_profit": 197947,
+      "operating_expenses": 86957, "operating_profit": 110990,
+      "interest_expense": 21061, "depreciation_amortization": 35574,
+      "profit_before_tax": 84169, "tax_expense": 17503, "net_profit": 66666, "eps": 98.4,
+      "total_assets": 1466217, "total_liabilities": 851340, "total_equity": 614877,
+      "total_debt": 266479, "cash_and_equivalents": 205310,
+      "current_assets": 470370, "current_liabilities": 278566, "inventory": 95938,
+      "operating_cash_flow": 125309, "investing_cash_flow": -118404,
+      "financing_cash_flow": -5869, "capex": 150177, "free_cash_flow": -24868,
+      "market_cap": 1680000, "dividend_payout_ratio": 0.10
+    },
+    {
+      "fiscal_year": 2023, "period": "FY", "as_of": "2023-03-31",
+      "revenue": 876396, "cost_of_revenue": 647585, "gross_profit": 228811,
+      "operating_expenses": 99046, "operating_profit": 129765,
+      "interest_expense": 24397, "depreciation_amortization": 41506,
+      "profit_before_tax": 97658, "tax_expense": 21189, "net_profit": 66702, "eps": 97.8,
+      "total_assets": 1644167, "total_liabilities": 909671, "total_equity": 734496,
+      "total_debt": 314816, "cash_and_equivalents": 197424,
+      "current_assets": 508770, "current_liabilities": 291519, "inventory": 89655,
+      "operating_cash_flow": 111778, "investing_cash_flow": -141654,
+      "financing_cash_flow": 26334, "capex": 158223, "free_cash_flow": -46445,
+      "market_cap": 1560000, "dividend_payout_ratio": 0.10
+    },
+    {
+      "fiscal_year": 2024, "period": "FY", "as_of": "2024-03-31",
+      "revenue": 899041, "cost_of_revenue": 654410, "gross_profit": 244631,
+      "operating_expenses": 104475, "operating_profit": 140156,
+      "interest_expense": 27186, "depreciation_amortization": 44118,
+      "profit_before_tax": 107369, "tax_expense": 28349, "net_profit": 79020, "eps": 116.6,
+      "total_assets": 1765579, "total_liabilities": 946268, "total_equity": 819311,
+      "total_debt": 323779, "cash_and_equivalents": 228537,
+      "current_assets": 546731, "current_liabilities": 311904, "inventory": 95510,
+      "operating_cash_flow": 133682, "investing_cash_flow": -156238,
+      "financing_cash_flow": 20341, "capex": 172439, "free_cash_flow": -38757,
+      "market_cap": 1960000, "dividend_payout_ratio": 0.10
+    },
+    {
+      "fiscal_year": 2025, "period": "FY", "as_of": "2025-03-31",
+      "revenue": 964643, "cost_of_revenue": 690709, "gross_profit": 273934,
+      "operating_expenses": 112585, "operating_profit": 161349,
+      "interest_expense": 29742, "depreciation_amortization": 47920,
+      "profit_before_tax": 122481, "tax_expense": 31479, "net_profit": 91002, "eps": 134.2,
+      "total_assets": 1907631, "total_liabilities": 987104, "total_equity": 920527,
+      "total_debt": 331428, "cash_and_equivalents": 251882,
+      "current_assets": 592704, "current_liabilities": 332958, "inventory": 101447,
+      "operating_cash_flow": 151907, "investing_cash_flow": -171284,
+      "financing_cash_flow": 14112, "capex": 184502, "free_cash_flow": -32595,
+      "market_cap": 2050000, "dividend_payout_ratio": 0.10
+    }
+  ]
+}

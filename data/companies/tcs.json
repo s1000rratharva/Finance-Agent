@@ -1,0 +1,78 @@
+{
+  "slug": "tcs",
+  "ticker": "TCS",
+  "name": "Tata Consultancy Services Limited",
+  "sector": "Information Technology",
+  "industry": "IT Services & Consulting",
+  "exchange": "NSE/BSE",
+  "currency": "INR",
+  "description": "India's largest IT services exporter, spanning banking, retail, communications and cloud transformation programmes.",
+  "source": "Illustrative sample data derived from annual reports - verify before production use",
+  "statements": [
+    {
+      "fiscal_year": 2021, "period": "FY", "as_of": "2021-03-31",
+      "revenue": 164177, "cost_of_revenue": 107214, "gross_profit": 56963,
+      "operating_expenses": 18149, "operating_profit": 38814,
+      "interest_expense": 308, "depreciation_amortization": 5901,
+      "profit_before_tax": 40470, "tax_expense": 8130, "net_profit": 32340, "eps": 86.6,
+      "total_assets": 153041, "total_liabilities": 52436, "total_equity": 100605,
+      "total_debt": 7906, "cash_and_equivalents": 44188,
+      "current_assets": 92266, "current_liabilities": 32479, "inventory": 635,
+      "operating_cash_flow": 43059, "investing_cash_flow": -22796,
+      "financing_cash_flow": -17390, "capex": 5116, "free_cash_flow": 37943,
+      "market_cap": 1210000, "dividend_payout_ratio": 0.54
+    },
+    {
+      "fiscal_year": 2022, "period": "FY", "as_of": "2022-03-31",
+      "revenue": 191754, "cost_of_revenue": 123133, "gross_profit": 68621,
+      "operating_expenses": 21130, "operating_profit": 47491,
+      "interest_expense": 340, "depreciation_amortization": 6514,
+      "profit_before_tax": 48902, "tax_expense": 10453, "net_profit": 38449, "eps": 103.1,
+      "total_assets": 172117, "total_liabilities": 56244, "total_equity": 115873,
+      "total_debt": 7551, "cash_and_equivalents": 52385,
+      "current_assets": 104611, "current_liabilities": 34512, "inventory": 710,
+      "operating_cash_flow": 50343, "investing_cash_flow": -25904,
+      "financing_cash_flow": -20327, "capex": 7048, "free_cash_flow": 43295,
+      "market_cap": 1280000, "dividend_payout_ratio": 0.56
+    },
+    {
+      "fiscal_year": 2023, "period": "FY", "as_of": "2023-03-31",
+      "revenue": 225458, "cost_of_revenue": 143298, "gross_profit": 82160,
+      "operating_expenses": 24995, "operating_profit": 57165,
+      "interest_expense": 402, "depreciation_amortization": 7419,
+      "profit_before_tax": 56893, "tax_expense": 14746, "net_profit": 42147, "eps": 113.2,
+      "total_assets": 193710, "total_liabilities": 62631, "total_equity": 131079,
+      "total_debt": 7907, "cash_and_equivalents": 54470,
+      "current_assets": 116243, "current_liabilities": 39203, "inventory": 791,
+      "operating_cash_flow": 51135, "investing_cash_flow": -27644,
+      "financing_cash_flow": -21767, "capex": 9668, "free_cash_flow": 41467,
+      "market_cap": 1230000, "dividend_payout_ratio": 0.59
+    },
+    {
+      "fiscal_year": 2024, "period": "FY", "as_of": "2024-03-31",
+      "revenue": 240893, "cost_of_revenue": 152162, "gross_profit": 88731,
+      "operating_expenses": 26842, "operating_profit": 61889,
+      "interest_expense": 425, "depreciation_amortization": 8093,
+      "profit_before_tax": 61696, "tax_expense": 15597, "net_profit": 46099, "eps": 125.3,
+      "total_assets": 210415, "total_liabilities": 66329, "total_equity": 144086,
+      "total_debt": 7706, "cash_and_equivalents": 61986,
+      "current_assets": 126777, "current_liabilities": 41966, "inventory": 843,
+      "operating_cash_flow": 56967, "investing_cash_flow": -30811,
+      "financing_cash_flow": -23174, "capex": 10438, "free_cash_flow": 46529,
+      "market_cap": 1360000, "dividend_payout_ratio": 0.60
+    },
+    {
+      "fiscal_year": 2025, "period": "FY", "as_of": "2025-03-31",
+      "revenue": 255324, "cost_of_revenue": 160194, "gross_profit": 95130,
+      "operating_expenses": 28517, "operating_profit": 66613,
+      "interest_expense": 448, "depreciation_amortization": 8742,
+      "profit_before_tax": 66289, "tax_expense": 17484, "net_profit": 48805, "eps": 133.1,
+      "total_assets": 226963, "total_liabilities": 70154, "total_equity": 156809,
+      "total_debt": 7489, "cash_and_equivalents": 68412,
+      "current_assets": 136018, "current_liabilities": 44838, "inventory": 887,
+      "operating_cash_flow": 61204, "investing_cash_flow": -33390,
+      "financing_cash_flow": -24679, "capex": 11162, "free_cash_flow": 50042,
+      "market_cap": 1420000, "dividend_payout_ratio": 0.62
+    }
+  ]
+}

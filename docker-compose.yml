@@ -1,0 +1,99 @@
+name: finsight
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-finsight}:${POSTGRES_PASSWORD:-finsight}@postgres:5432/${POSTGRES_DB:-finsight}
+  POSTGRES_USER: ${POSTGRES_USER:-finsight}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finsight}
+  POSTGRES_DB: ${POSTGRES_DB:-finsight}
+  JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+  JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-1440}
+  GROQ_API_KEY: ${GROQ_API_KEY:-}
+  GROQ_CHAT_MODEL: ${GROQ_CHAT_MODEL:-llama-3.3-70b-versatile}
+  GROQ_EMBED_MODEL: ${GROQ_EMBED_MODEL:-}
+  CHROMA_HOST: chroma
+  CHROMA_PORT: "8000"
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://minio:9000}
+  S3_BUCKET: ${S3_BUCKET:-finsight-documents}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-finsight}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-finsight-secret}
+  S3_REGION: ${S3_REGION:-auto}
+  UPLOAD_DIR: /data/uploads
+  ENVIRONMENT: ${ENVIRONMENT:-development}
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-finsight}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finsight}
+      POSTGRES_DB: ${POSTGRES_DB:-finsight}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finsight}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  chroma:
+    image: chromadb/chroma:1.5.9
+    ports:
+      - "8001:8000"
+    volumes:
+      - chromadata:/chroma/chroma
+    environment:
+      ANONYMIZED_TELEMETRY: "FALSE"
+
+  minio:
+    image: minio/minio:latest
+    profiles: ["storage"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-finsight}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-finsight-secret}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      <<: *backend-env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  pgdata:
+  chromadata:
+  miniodata:
