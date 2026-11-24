@@ -13,12 +13,16 @@ import asyncio
 import uuid
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
 from app.db.models.document import Document, DocumentChunk
 from app.schemas.document import IngestionResult
+from app.services.ingestion.company import (
+    CompanyLinkResult,
+    register_company_from_document,
+)
 from app.services.ingestion.extractors import extract
 from app.services.ingestion.loaders import load_document
 from app.services.rag.bm25 import get_bm25_index
@@ -44,7 +48,9 @@ async def ingest_document(
         )
 
     document.status = "processing"
-    await session.flush()
+    document.error = None
+    # Commit immediately so the UI can show "processing" while extraction runs.
+    await session.commit()
 
     try:
         # 1. Load -------------------------------------------------------------
@@ -59,9 +65,44 @@ async def ingest_document(
         if not extraction.chunks:
             raise ValueError("Extraction produced no text chunks")
 
+        # 2b. Register the reporting company for Overview / Companies pages --
+        company_link = CompanyLinkResult()
+        try:
+            company_link = await register_company_from_document(
+                session,
+                document_name=document_name,
+                pages=pages,
+                facts=extraction.facts,
+            )
+        except Exception as exc:
+            # RAG indexing is still useful even if company detection fails.
+            log.warning(
+                "ingestion.company_registration_failed",
+                error=str(exc),
+                document=document_name,
+            )
+
         # 3. Persist text chunks ---------------------------------------------
+        # Reprocessing replaces the previous extraction; leaving old rows would
+        # duplicate every citation and stale embeddings in Chroma.
+        await session.execute(
+            delete(DocumentChunk).where(DocumentChunk.document_id == document_id)
+        )
+
         chunk_rows: list[DocumentChunk] = []
         for item in extraction.chunks:
+            metadata = {
+                **item.chunk.metadata,
+                "document_name": document_name,
+                "source_kind": item.source_kind,
+            }
+            if company_link.company_slug:
+                metadata.update(
+                    {
+                        "company_slug": company_link.company_slug,
+                        "company_name": company_link.company_name,
+                    }
+                )
             chunk_rows.append(
                 DocumentChunk(
                     id=uuid.uuid4(),
@@ -72,11 +113,7 @@ async def ingest_document(
                     page=item.chunk.page,
                     section=item.chunk.section,
                     token_count=item.chunk.token_count,
-                    metadata_json={
-                        **item.chunk.metadata,
-                        "document_name": document_name,
-                        "source_kind": item.source_kind,
-                    },
+                    metadata_json=metadata,
                 )
             )
         session.add_all(chunk_rows)
@@ -88,12 +125,17 @@ async def ingest_document(
             "tables_detected": extraction.tables_detected,
             "numeric_facts": len(extraction.facts),
             "pages": len(pages),
+            "company_slug": company_link.company_slug,
+            "company_name": company_link.company_name,
+            "fiscal_year": company_link.fiscal_year,
+            "statements_created": company_link.statements_created,
         }
         await session.flush()
 
         # 4. Vector index -----------------------------------------------------
         try:
             store = get_vector_store()
+            await store.delete_document(str(workspace_id), str(document_id))
             await store.upsert_chunks(
                 str(workspace_id),
                 chunk_rows,
@@ -112,13 +154,21 @@ async def ingest_document(
             chunks=len(chunk_rows),
             tables=extraction.tables_detected,
             facts=len(extraction.facts),
+            company=company_link.company_slug,
+            statements=company_link.statements_created,
         )
+        message = f"Ingested {len(chunk_rows)} chunks from {len(pages)} page(s)"
+        if company_link.company_name:
+            message += f"; registered {company_link.company_name}"
         return IngestionResult(
             document_id=document_id,
             status="ready",
             chunks=len(chunk_rows),
             tables_detected=extraction.tables_detected,
-            message=f"Ingested {len(chunk_rows)} chunks from {len(pages)} page(s)",
+            message=message,
+            company_slug=company_link.company_slug,
+            company_name=company_link.company_name,
+            statements_created=company_link.statements_created,
         )
     except Exception as exc:
         log.exception("ingestion.failed", document=str(document_id))

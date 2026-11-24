@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
@@ -42,6 +43,14 @@ export function useCompanies() {
   return useQuery({
     queryKey: ["companies"],
     queryFn: () => api.get<Company[]>("/api/v1/companies"),
+  });
+}
+
+/** Newest document-derived company, or the first preloaded company. */
+export function useFeaturedCompany() {
+  return useQuery({
+    queryKey: ["featured-company"],
+    queryFn: () => api.get<{ slug: string | null }>("/api/v1/companies/featured"),
   });
 }
 
@@ -99,10 +108,31 @@ export function useCompanyInsights(slug: string | undefined) {
 // --- documents ------------------------------------------------------------------
 
 export function useDocuments() {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const query = useQuery({
     queryKey: ["documents"],
     queryFn: () => api.get<DocumentRecord[]>("/api/v1/documents"),
+    // Ingestion runs in a FastAPI background task, so the upload response is
+    // always "pending". Poll until every document reaches a terminal state.
+    refetchInterval: (query) => {
+      const docs = query.state.data as DocumentRecord[] | undefined;
+      return docs?.some((d) => d.status === "pending" || d.status === "processing")
+        ? 2000
+        : false;
+    },
   });
+
+  // Company rows are created during ingestion, so refresh the catalogue once
+  // the background task reaches a terminal state.
+  useEffect(() => {
+    const docs = query.data;
+    if (!docs?.length) return;
+    if (docs.some((d) => d.status === "pending" || d.status === "processing")) return;
+    void queryClient.invalidateQueries({ queryKey: ["companies"] });
+    void queryClient.invalidateQueries({ queryKey: ["featured-company"] });
+  }, [query.data, queryClient]);
+
+  return query;
 }
 
 export function useUploadDocument() {
@@ -121,6 +151,8 @@ export function useUploadDocument() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
       void queryClient.invalidateQueries({ queryKey: ["workspace-stats"] });
+      void queryClient.invalidateQueries({ queryKey: ["companies"] });
+      void queryClient.invalidateQueries({ queryKey: ["featured-company"] });
     },
   });
 }
@@ -143,6 +175,8 @@ export function useReprocessDocument() {
       api.post<{ status: string }>(`/api/v1/documents/${id}/reprocess`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
+      void queryClient.invalidateQueries({ queryKey: ["companies"] });
+      void queryClient.invalidateQueries({ queryKey: ["featured-company"] });
     },
   });
 }

@@ -1,14 +1,53 @@
 """Company catalogue, statements and cross-company comparison."""
 
 from fastapi import APIRouter, Query
+from sqlalchemy import or_, select
 
 from app.api.deps import DbSession
 from app.core.exceptions import NotFoundError, UnprocessableError
+from app.db.models.financial import Company, FinancialStatement
 from app.schemas.company import CompanyDetail, CompanyOut, ComparisonOut, StatementOut
 from app.services.financials import queries as fin_queries
 from app.services.financials import calculator as calc
 
 router = APIRouter()
+
+
+@router.get("/featured")
+async def featured_company(session: DbSession) -> dict[str, str | None]:
+    """Slug to feature on Overview: newest uploaded company, else first seeded."""
+    company_id = (
+        await session.execute(
+            select(FinancialStatement.company_id)
+            .where(
+                FinancialStatement.source.like("Uploaded document:%"),
+                or_(
+                    FinancialStatement.revenue.is_not(None),
+                    FinancialStatement.net_profit.is_not(None),
+                ),
+            )
+            .order_by(FinancialStatement.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if company_id is None:
+        # Fall back to any uploaded company, even if only a placeholder row
+        # could be extracted; a real KPI-bearing upload always wins.
+        company_id = (
+            await session.execute(
+                select(FinancialStatement.company_id)
+                .where(FinancialStatement.source.like("Uploaded document:%"))
+                .order_by(FinancialStatement.created_at.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+    if company_id is not None:
+        company = await session.get(Company, company_id)
+        if company is not None:
+            return {"slug": company.slug}
+
+    companies = await fin_queries.list_companies(session)
+    return {"slug": companies[0].slug if companies else None}
 
 
 @router.get("", response_model=list[CompanyOut])
@@ -97,8 +136,6 @@ async def compare(
     slug_list = [s.strip() for s in slugs.split(",") if s.strip()]
     if len(slug_list) < 2:
         raise UnprocessableError("Provide at least two company slugs")
-
-    from app.db.models.financial import FinancialStatement
 
     key = metric.strip().lower().replace(" ", "_")
     if not hasattr(FinancialStatement, key):

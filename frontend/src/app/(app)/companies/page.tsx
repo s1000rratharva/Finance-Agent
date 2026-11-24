@@ -25,7 +25,7 @@ export default function CompaniesPage() {
   return (
     <AppShell
       title="Companies"
-      subtitle="Preloaded fundamentals with five fiscal years of statements"
+      subtitle="Seeded fundamentals and companies detected in uploaded documents"
     >
       <div className="flex flex-col gap-6">
         <section>
@@ -99,7 +99,7 @@ export default function CompaniesPage() {
                       <td className="text-ink-400">{company.sector ?? "—"}</td>
                       <td className="text-ink-400">{company.exchange ?? "—"}</td>
                       <td className="font-mono text-[10px] uppercase tracking-wider text-ink-400">
-                        FY21–FY25
+                        FY snapshot
                       </td>
                       <td>
                         <Link

@@ -102,8 +102,13 @@ class VectorStore:
 
         def _run() -> list[dict]:
             collection = self._collection(workspace_id)
-            filter_where = dict(where or {})
-            filter_where["workspace_id"] = workspace_id
+            extra = dict(where or {})
+            # Chroma 1.x rejects a flat dict with two operators; combine with $and.
+            filter_where = (
+                {"$and": [extra, {"workspace_id": workspace_id}]}
+                if extra
+                else {"workspace_id": workspace_id}
+            )
             result = collection.query(
                 query_texts=query_texts,
                 n_results=n_results,

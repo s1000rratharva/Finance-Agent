@@ -16,20 +16,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState, SkeletonRows } from "@/components/ui/spinner";
-import { useCompanies, useCompanyOverview, useDocuments } from "@/hooks/use-api";
+import {
+  useCompanies,
+  useCompanyOverview,
+  useDocuments,
+  useFeaturedCompany,
+} from "@/hooks/use-api";
 import { useWorkspaceStats } from "@/providers/auth-provider";
 import { formatBytes, formatDate, formatNumber } from "@/lib/format";
 import { SUGGESTED_PROMPTS } from "@/lib/constants";
 
 export default function DashboardPage() {
   const { data: companies, isLoading: loadingCompanies } = useCompanies();
+  const { data: featured, isLoading: loadingFeatured } = useFeaturedCompany();
   const { data: stats, isLoading: loadingStats } = useWorkspaceStats();
   const { data: documents, isLoading: loadingDocs } = useDocuments();
 
-  const featuredSlug = companies?.[0]?.slug;
+  const featuredSlug = featured?.slug ?? companies?.[0]?.slug;
   const { data: overview, isLoading: loadingOverview } = useCompanyOverview(featuredSlug);
 
-  const loading = loadingCompanies || loadingStats || loadingDocs;
+  const loading = loadingCompanies || loadingFeatured || loadingStats || loadingDocs;
 
   return (
     <AppShell
@@ -127,7 +133,7 @@ export default function DashboardPage() {
               <CardHeader className="flex-row items-center justify-between">
                 <div>
                   <CardTitle>Coverage</CardTitle>
-                  <CardDescription>Preloaded companies with FY21–FY25 statements</CardDescription>
+                  <CardDescription>Seeded and document-derived companies</CardDescription>
                 </div>
                 <Link
                   href="/companies"

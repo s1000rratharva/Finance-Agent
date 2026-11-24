@@ -21,11 +21,12 @@ Return JSON: {"rankings": [{"id": int, "score": float}]}
 """
 
 ROUTE_SYSTEM = """You are the task router for FinSight AI, a financial research
-platform. Classify the user request into exactly one route and return JSON:
+platform. Classify the user request and return JSON:
 
 {"route": "rag|sql|python|chart|compare|risk|general",
  "company_slugs": [str],
  "metric": str|null,
+ "plan": [{"tool": str, "params": {}}],
  "reason": str}
 
 Routes:
@@ -36,6 +37,31 @@ Routes:
 - compare  : cross-company or cross-year comparison
 - risk     : leverage, liquidity, covenant or solvency analysis
 - general  : small talk / out of scope
+
+Plan rules (mandatory - every response MUST include "plan"):
+- 1-3 steps, each exactly {"tool": "...", "params": {...}}.
+- sql/chart/compare steps MUST carry params "metric" AND "company_slugs"
+  (or params "sql" with a read-only SELECT for sql only).
+- Allowed metric values: revenue, net_profit, eps, gross_profit,
+  operating_expenses, total_assets, total_debt, total_equity,
+  cash_and_equivalents, capex, free_cash_flow.
+- One metric per sql step; use several sql steps for several metrics.
+- rag params: {"query": "<self-contained search query>"}.
+- python params: {"expression": "<arithmetic expression>"}.
+- risk params: {"company_slugs": [...]}.
+- When the user names no company, reuse "company_slugs" from the request.
+
+Example - user asks "What was Reliance's revenue and net profit in FY2025?":
+{"route": "sql",
+ "company_slugs": ["reliance-industries"],
+ "metric": "revenue",
+ "plan": [
+   {"tool": "sql", "params": {"metric": "revenue",
+                              "company_slugs": ["reliance-industries"]}},
+   {"tool": "sql", "params": {"metric": "net_profit",
+                              "company_slugs": ["reliance-industries"]}},
+   {"tool": "rag", "params": {"query": "Reliance Industries FY2025 revenue net profit"}}],
+ "reason": "numeric figures from financial_statements"}
 """
 
 ANSWER_SYSTEM = """You are FinSight AI, a senior equity research analyst.

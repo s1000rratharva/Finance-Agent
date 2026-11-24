@@ -173,12 +173,41 @@ class Orchestrator:
             )
             route = str(data.get("route") or _ROUTE_FALLBACK)
             plan = data.get("plan") or self._default_plan(route, data)
-            if not isinstance(plan, list) or not plan:
-                plan = [{"tool": "rag", "params": {}}]
+            plan = self._normalize_plan(plan, data, company_slugs)
             return route, plan, False
         except Exception as exc:
             log.warning("route.failed", error=str(exc))
             return _ROUTE_FALLBACK, [{"tool": "rag", "params": {}}], True
+
+    @staticmethod
+    def _normalize_plan(plan: object, data: dict, company_slugs: list[str]) -> list[dict]:
+        """Coerce the LLM plan into well-formed steps.
+
+        Models sometimes emit plan entries without ``params``, or with a
+        ``metric`` only at the top level - fill the gaps instead of letting
+        the sql tool fail downstream.
+        """
+        metric = data.get("metric")
+        slugs = list(data.get("company_slugs") or company_slugs or [])
+        cleaned: list[dict] = []
+        if not isinstance(plan, list):
+            return [{"tool": "rag", "params": {}}]
+        for step in plan:
+            if not isinstance(step, dict):
+                continue
+            tool_name = str(step.get("tool") or "").strip()
+            if not tool_name:
+                continue
+            params = step.get("params")
+            params = dict(params) if isinstance(params, dict) else {}
+            if slugs:
+                params.setdefault("company_slugs", slugs)
+            if metric and not params.get("metric") and not params.get("sql"):
+                params["metric"] = metric
+            if tool_name == "rag" and not params.get("query"):
+                params["query"] = data.get("rewritten_query") or ""
+            cleaned.append({"tool": tool_name, "params": params})
+        return cleaned or [{"tool": "rag", "params": {}}]
 
     def _default_plan(self, route: str, data: dict) -> list[dict]:
         """Build a sensible plan when the router omits explicit steps."""

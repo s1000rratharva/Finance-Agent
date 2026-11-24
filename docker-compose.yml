@@ -1,7 +1,7 @@
 name: finsight
 
 x-backend-env: &backend-env
-  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-finsight}:${POSTGRES_PASSWORD:-finsight}@postgres:5432/${POSTGRES_DB:-finsight}
+  DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://finsight:finsight@postgres:5432/finsight}
   POSTGRES_USER: ${POSTGRES_USER:-finsight}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finsight}
   POSTGRES_DB: ${POSTGRES_DB:-finsight}
@@ -10,7 +10,7 @@ x-backend-env: &backend-env
   COOKIE_SECURE: ${COOKIE_SECURE:-false}
   COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
   GROQ_API_KEY: ${GROQ_API_KEY:-}
-  GROQ_CHAT_MODEL: ${GROQ_CHAT_MODEL:-llama-3.3-70b-versatile}
+  GROQ_CHAT_MODEL: ${GROQ_CHAT_MODEL:-openai/gpt-oss-120b}
   GROQ_EMBED_MODEL: ${GROQ_EMBED_MODEL:-}
   CHROMA_HOST: chroma
   CHROMA_PORT: "8000"

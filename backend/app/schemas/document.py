@@ -36,6 +36,9 @@ class IngestionResult(BaseModel):
     chunks: int = 0
     tables_detected: int = 0
     message: str | None = None
+    company_slug: str | None = None
+    company_name: str | None = None
+    statements_created: int = 0
 
 
 class UploadResponse(BaseModel):

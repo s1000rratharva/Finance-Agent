@@ -1,8 +1,10 @@
 """Secure document storage on S3-compatible object stores.
 
-Local dev -> MinIO, production -> Cloudflare R2 (S3 API). Documents are stored
-under ``/{workspace_id}/{document_id}/{filename}`` so a leaked key alone never
-crosses a tenant boundary.
+Local dev -> MinIO, production -> any S3-compatible store (Neon Object
+Storage, Cloudflare R2). Documents are stored under
+``/{workspace_id}/{document_id}/{filename}`` so a leaked key alone never
+crosses a tenant boundary. If the object store is unreachable the file is
+written to local disk as a fallback (ephemeral on Render free).
 """
 
 from __future__ import annotations
@@ -31,12 +33,17 @@ class ObjectStore:
                 import boto3
             except ImportError as exc:  # pragma: no cover
                 raise ServiceUnavailableError("boto3 is not installed") from exc
+            from botocore.config import Config
+
             self._client = boto3.client(
                 "s3",
                 endpoint_url=settings.s3_endpoint_url or None,
                 aws_access_key_id=settings.s3_access_key or None,
                 aws_secret_access_key=settings.s3_secret_key or None,
                 region_name=settings.s3_region,
+                # Path-style addressing works with MinIO, Cloudflare R2 and
+                # Neon Object Storage (which supports path-style only).
+                config=Config(s3={"addressing_style": "path"}),
             )
         return self._client
 

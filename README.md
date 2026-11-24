@@ -44,7 +44,7 @@ charts and workspace-level data isolation.
 │    ingestion/  PDF·DOCX·XLSX·CSV loaders → text + numeric extraction     │
 │    financials/ SQL query builders · Python calculator · risk scoring     │
 │    llm/        Groq client + central prompt registry                     │
-│    storage/    S3-compatible object store (R2 / MinIO)                   │
+│    storage/    S3-compatible object store (Neon / MinIO)                 │
 │    evaluation/ RAGAS harness (graceful retrieval-only fallback)          │
 │  db/           SQLAlchemy 2 async models: users, workspaces, documents,  │
 │                chunks, conversations, companies, financial_statements    │
@@ -52,7 +52,7 @@ charts and workspace-level data isolation.
         │                               │                 │
 ┌───────▼──────┐              ┌─────────▼────────┐  ┌─────▼──────────────┐
 │ PostgreSQL   │              │ ChromaDB         │  │ Object storage     │
-│ source of    │              │ per-workspace    │  │ R2 (prod) / MinIO  │
+│ source of    │              │ per-workspace    │  │ Neon (prod)/ MinIO │
 │ truth + BM25 │              │ vector collections│ │ (dev) / local disk │
 │ rebuild base │              │                  │  │                    │
 └──────────────┘              └──────────────────┘  └────────────────────┘
@@ -79,9 +79,9 @@ charts and workspace-level data isolation.
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, TanStack Query 5, Recharts 3, lucide-react |
 | Backend | FastAPI, Pydantic v2, SQLAlchemy 2 (async), Alembic, structlog, tenacity |
 | Data | PostgreSQL 16, ChromaDB 1.5, rank-bm25 |
-| LLM | Groq (`llama-3.3-70b-versatile`) for chat, routing, rewriting, reranking |
+| LLM | Groq (`openai/gpt-oss-120b`) for chat, routing, rewriting, reranking |
 | Ingestion | pypdf, python-docx, openpyxl/pandas, tabula-py |
-| Storage | boto3 → Cloudflare R2 (prod) / MinIO (dev) / local disk fallback |
+| Storage | boto3 → Neon Object Storage (prod) / MinIO (dev) / local disk fallback |
 | Evaluation | RAGAS + a retrieval-only fallback |
 | Auth | JWT (PyJWT) + bcrypt, httpOnly cookie |
 | Ops | Docker, docker-compose, Makefile |
@@ -110,11 +110,11 @@ charts and workspace-level data isolation.
 │   │       ├── ingestion/       # loaders, extractors, pipeline
 │   │       ├── financials/      # queries, calculator, risk
 │   │       ├── llm/             # Groq client, prompts
-│   │       ├── storage/         # S3/R2 object store
+│   │       ├── storage/         # S3/Neon object store
 │   │       ├── auth/            # register/login service
 │   │       └── evaluation/      # RAGAS runner
 │   ├── scripts/seed.py          # idempotent company seeding
-│   ├── tests/                   # 45 tests, no external services needed
+│   ├── tests/                   # 50 tests, no external services needed
 │   ├── requirements.txt         # core runtime
 │   └── requirements-eval.txt    # + RAGAS (Python ≤ 3.12)
 ├── frontend/
@@ -225,6 +225,7 @@ Base path: `http://localhost:8000/api/v1` · interactive docs at `/docs`
 | GET/POST | `/workspaces` | List / create workspaces |
 | GET | `/workspaces/current/stats` | Document, chunk, conversation counts |
 | GET | `/companies` | Company catalogue |
+| GET | `/companies/featured` | Newest document-derived company (used by Overview) |
 | GET | `/companies/{slug}` | Company + full statement history |
 | GET | `/companies/{slug}/ratios` | Derived ratios (computed in Python) |
 | GET | `/companies/compare/{metric}` | Cross-company series (`?slugs=a,b`) |
@@ -244,6 +245,13 @@ Base path: `http://localhost:8000/api/v1` · interactive docs at `/docs`
 
 Auth is a httpOnly cookie; every data request also carries `X-Workspace-Id`, which the
 backend authorises against membership before touching any row.
+
+Uploading a document also registers its reporting company for analytics: the
+ingestion pipeline detects the company from the text/filename, upserts a
+`companies` row, and creates an FY statement row from explicitly-unitised
+figures (Million values converted to INR crore). When nothing reliable can be
+extracted, an empty FY row is still created so Overview and the company detail
+page remain browsable. Extracted values are marked `auto-extracted; verify`.
 
 ---
 
@@ -284,7 +292,7 @@ cd backend
 python -m pytest -q
 ```
 
-**45 tests, zero external services required** — they cover:
+**50 tests, zero external services required** — they cover:
 
 - API smoke + auth guards (no DB connection needed)
 - Password hashing, JWT round-trip, expiry and tamper rejection
@@ -317,30 +325,60 @@ npm run build
 
 ---
 
-## Deployment roadmap
+## Deployment (100% free tier)
 
 | Stage | Target | Notes |
 | --- | --- | --- |
-| 1 | **Vercel** | Frontend only; point `NEXT_PUBLIC_API_URL` at the API, or use the `/backend` rewrite |
-| 2 | **Render** | FastAPI web service + Docker runtime; managed Postgres add-on |
-| 3 | **Neon** | Serverless Postgres — create branches per environment, set `DATABASE_URL` |
-| 4 | **Cloudflare R2** | Set `S3_ENDPOINT_URL`, `S3_BUCKET`, R2 access/secret keys; no egress fees |
-| 5 | **Chroma** | Self-host `chromadb/chroma:1.5.9` with a persistent `/data` volume, or use Chroma Cloud (needs a `CloudClient` adapter) |
-| 6 | **Docker** | `backend/Dockerfile` + `frontend/Dockerfile` are ready; add a production compose override |
+| 1 | **Vercel** | Frontend only. Set `NEXT_PUBLIC_API_URL` to the Render API URL, or use the `/backend` rewrite |
+| 2 | **Render** | FastAPI web service (Docker runtime) + a Chroma web service. Free tier sleeps after inactivity; its disk is **ephemeral** |
+| 3 | **Neon** | Serverless Postgres **and** Object Storage. Free allowance: 1 GB Postgres, 5 GB object storage, 100 CU-hrs, 5 GB egress |
+| 4 | **Chroma** | Self-host `chromadb/chroma:1.5.9` on Render. No paid disk needed — the index is rebuilt from Postgres on cold start |
 
-### ChromaDB in production
+Render backend start command:
+
+```sh
+python -m scripts.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+`scripts.seed` is idempotent and guarantees the sample companies exist after a
+fresh deploy. Uploaded companies are created by ingestion, not seeding.
+
+Critical env values:
+
+```env
+# Neon pooler host, with asyncpg's ssl parameter (NOT sslmode)
+DATABASE_URL=postgresql+asyncpg://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?ssl=require
+GROQ_CHAT_MODEL=openai/gpt-oss-120b   # llama-3.3-70b-versatile returns 404
+COOKIE_SECURE=true
+COOKIE_SAMESITE=none                  # cross-site Vercel -> Render; use "lax" behind a same-origin rewrite
+CORS_ORIGINS=https://your-app.vercel.app
+```
+
+### ChromaDB on the free tier
 
 Chroma is a **derived index**, not the source of truth. Postgres keeps the text
-chunks; each workspace gets a collection named `ws_<workspace_id>`. A fresh
-Chroma instance therefore needs `python -m scripts.seed` and reprocessing of
-uploaded documents (`POST /api/v1/documents/{id}/reprocess`) before RAG returns
-citations. `CHROMA_COLLECTION` in the env file is informational only.
+chunks; each workspace gets a collection named `ws_<workspace_id>`.
 
-**Option A — self-hosted Chroma server (works with the current code)**
+On Render's free tier the disk is ephemeral, so a restart begins with an empty
+Chroma. The backend handles this on startup: `_rebuild_vector_indexes()` in
+`backend/app/main.py` finds workspaces with `DocumentChunk` rows, and whenever a
+collection is empty it re-upserts those chunks grouped by document. Warm
+restarts leave populated collections untouched. No manual reprocessing is
+needed after a Render restart.
 
-Run the official image as its own service with a persistent volume/disk mounted
-at `/data`. Chroma moved its container data path from `/chroma/chroma` to `/data`
-in v1.0, and this repo pins 1.5.9.
+Implications:
+
+- Do **not** buy a Render persistent disk for Chroma — it is not needed.
+- The first request after a cold start may be slow while the index rebuilds
+  (~1 minute for ~700 chunks in testing).
+- Keep **one** backend instance and **one** Chroma instance on the free tier;
+  rebuild is per-process and duplicated instances would double the work.
+- `CHROMA_COLLECTION` in the env file is informational only.
+- Never point a deployed backend at `localhost`.
+
+Run the official Chroma image as its own Render web service (it listens on
+8000 internally). Chroma moved its container data path from `/chroma/chroma` to
+`/data` in v1.0, and this repo pins 1.5.9:
 
 ```yaml
 chroma:
@@ -348,8 +386,6 @@ chroma:
   environment:
     CHROMA_PERSIST_PATH: /data
     ANONYMIZED_TELEMETRY: "FALSE"
-  volumes:
-    - chromadata:/data
   ports:
     - "8001:8000"   # host port; the container listens on 8000
 ```
@@ -357,34 +393,13 @@ chroma:
 Backend settings for that service:
 
 ```env
-CHROMA_HOST=chroma     # service DNS name inside the network, not localhost
+CHROMA_HOST=chroma     # Render internal hostname, not localhost
 CHROMA_PORT=8000       # internal container port
 ```
 
-On Render, create a Docker web service from `chromadb/chroma:1.5.9`, attach a
-persistent disk at `/data`, keep it at **one instance** (Render disks are bound
-to a single service instance), and set `CHROMA_HOST` to the internal hostname,
-for example `finsight-chroma:8000`.
-
-**Option B — Chroma Cloud (managed/serverless)**
-
-Create a database at <https://trychroma.com> and use the values from its Connect
-panel:
-
-```env
-CHROMA_HOST=api.trychroma.com   # or the region-specific endpoint
-CHROMA_PORT=443
-CHROMA_API_KEY=...
-CHROMA_TENANT=...
-CHROMA_DATABASE=...
-```
-
-`backend/app/services/rag/vector_store.py` currently constructs an
-`HttpClient`; Cloud needs `CloudClient` with API-key auth. Ask for that adapter
-before choosing Option B. Option A needs no code changes.
-
-Do **not** use in-memory/embedded Chroma in production, and never point a
-serverless backend at `localhost`.
+Chroma Cloud (`api.trychroma.com`) is also possible but needs a `CloudClient`
+adapter — `backend/app/services/rag/vector_store.py` currently uses `HttpClient`.
+No code changes are needed for the self-hosted option above.
 
 Pre-deployment checklist
 
@@ -392,7 +407,7 @@ Pre-deployment checklist
 - [ ] Set `ENVIRONMENT=production` (JSON logging) and `GROQ_API_KEY`
 - [ ] Set `COOKIE_SECURE=true`. Keep `COOKIE_SAMESITE=lax` behind the same-origin `/backend` rewrite; use `none` only for a cross-site API + frontend. `ENVIRONMENT=production` alone does not change cookie flags.
 - [ ] Set `CORS_ORIGINS` to the exact frontend origin(s) when calling the API directly
-- [ ] Give Chroma a persistent `/data` volume and reindex/seed it after first deploy
+- [ ] Confirm Chroma rebuilds from Postgres on cold start (no persistent disk needed)
 - [ ] Replace sample company data with audited figures
 - [ ] Run Alembic migrations instead of `create_all`
 - [ ] Move document processing to a real worker (Celery/Arq) for large uploads

@@ -74,6 +74,8 @@ class NumericFact:
     fiscal_year: int | None = None
     page: int | None = None
     context: str = ""
+    source_kind: str = "text"  # text | table
+    year_hint: str | None = None  # "current", "previous" or an explicit year
 
 
 @dataclass
@@ -158,37 +160,124 @@ def _extract_from_table(
                     fiscal_year=year,
                     page=page,
                     context=" | ".join(row[:4]),
+                    source_kind="table",
+                    year_hint=str(year),
                 )
             )
     return facts
 
 
+_YEAR_CUE_RE = re.compile(
+    r"current\s+year|previous\s+year|FY\s?20\d{2}|\b20\d{2}\b", re.IGNORECASE
+)
+
+
 def _extract_from_text(text: str, *, page: int | None) -> list[NumericFact]:
-    """Fallback: scan prose lines like 'Revenue from operations 1,02,592 cr'."""
+    """Fallback: scan prose lines like 'Revenue from operations 1,02,592 cr'.
+
+    Annual reports often phrase figures as "X for the current year as against
+    Y in the previous year" without printing the years next to each number. We
+    keep a ``year_hint`` per number so the statement builder can resolve it
+    against the report's fiscal year instead of assigning both numbers to FY.
+    """
     facts: list[NumericFact] = []
-    for line in text.splitlines():
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
         lowered = line.lower()
-        column = _match_label(lowered)
+        previous = lines[index - 1].lower() if index else ""
+        following = lines[index + 1].lower() if index + 1 < len(lines) else ""
+        # A line such as "for the current year as against X in the previous
+        # year" carries no label of its own; borrow it from the adjacent line.
+        column = (
+            _match_label(lowered)
+            or _match_label(f"{previous} {lowered}")
+            or _match_label(f"{lowered} {following}")
+        )
         if column is None:
             continue
-        numbers = _NUMBER_RE.findall(line)
-        if not numbers:
-            continue
-        year_match = re.search(r"(FY\s?20\d{2}|20\d{2})", line, re.IGNORECASE)
-        year = int(re.sub(r"\D", "", year_match.group(0))[-4:]) if year_match else None
-        for raw in numbers:
+
+        # Year cues on the following line resolve phrases that split across
+        # lines ("...sales increased to X\nfor the current year as against Y").
+        cues = [
+            (match.start(), match.end(), match.group(0))
+            for match in _YEAR_CUE_RE.finditer(line)
+        ]
+        offset = len(line) + 1
+        cues.extend(
+            (match.start() + offset, match.end() + offset, match.group(0))
+            for match in _YEAR_CUE_RE.finditer(following)
+        )
+        contrast_positions = []
+        for part, shift in ((line, 0), (following, offset)):
+            position = part.lower().find("as against")
+            if position >= 0:
+                contrast_positions.append(position + shift)
+        for match in _NUMBER_RE.finditer(line):
+            raw = match.group(0).strip()
+            hint = _contrast_year_hint(match.start(), contrast_positions, cues) or _nearest_year_hint(
+                match.start(), cues
+            )
+            digits = re.sub(r"\D", "", hint or "")[-4:]
+            fiscal_year = int(digits) if len(digits) == 4 else None
             facts.append(
                 NumericFact(
                     label=line.strip()[:120],
                     column=column,
-                    raw_value=raw.strip(),
+                    raw_value=raw,
                     value=parse_number(raw),
-                    fiscal_year=year,
+                    fiscal_year=fiscal_year,
                     page=page,
                     context=line.strip()[:240],
+                    source_kind="text",
+                    year_hint=hint,
                 )
             )
     return facts
+
+
+def _nearest_year_hint(
+    position: int, cues: list[tuple[int, int, str]]
+) -> str | None:
+    """Return the year cue closest to a number (nearest span wins)."""
+
+    def distance(span: tuple[int, int, str]) -> int:
+        start, end, _ = span
+        if start >= position:
+            return start - position
+        if end <= position:
+            return position - end
+        return 0
+
+    if not cues:
+        return None
+    cue = min(cues, key=distance)
+    token = cue[2].lower()
+    if token.startswith("current"):
+        return "current"
+    if token.startswith("previous"):
+        return "previous"
+    digits = re.sub(r"\D", "", token)
+    return digits[-4:] if len(digits) >= 4 else None
+
+
+def _contrast_year_hint(
+    position: int,
+    contrast_positions: list[int],
+    cues: list[tuple[int, int, str]],
+) -> str | None:
+    """Resolve "X for the current year as against Y in the previous year".
+
+    A naive nearest-cue rule assigns both numbers to "current" because that
+    phrase sits closer to X. The contrast pivot tells us which side of the
+    comparison each number belongs to.
+    """
+    tokens = {cue[2].lower() for cue in cues}
+    for pivot in contrast_positions:
+        if position < pivot and any(token.startswith("current") for token in tokens):
+            return "current"
+        if position > pivot and any(token.startswith("previous") for token in tokens):
+            return "previous"
+    return None
 
 
 def _match_label(label: str) -> str | None:

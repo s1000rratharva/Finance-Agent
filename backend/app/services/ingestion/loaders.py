@@ -6,6 +6,7 @@ never cares about the source format.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -46,17 +47,43 @@ def load_document(path: Path) -> list[LoadedPage]:
 
 
 def load_pdf(path: Path) -> list[LoadedPage]:
+    """Extract text, preferring PyMuPDF (fast C parser).
+
+    Tabula table detection is opt-in via FINSIGHT_PDF_TABLES=1 because it
+    launches a JVM per page: on a 548-page annual report that takes hours
+    and floods stderr with JPEG2000 warnings. Text extraction alone is what
+    the RAG index consumes and takes ~10s with PyMuPDF.
+    """
+    want_tables = os.getenv("FINSIGHT_PDF_TABLES", "").lower() in {"1", "true", "yes"}
+    pages: list[LoadedPage] = []
+    try:
+        import pymupdf
+
+        with pymupdf.open(path) as doc:
+            for i, page in enumerate(doc, start=1):
+                text = page.get_text("text").strip()
+                tables: list[list[list[str]]] = []
+                if want_tables:
+                    try:
+                        tables = _extract_pdf_tables(path, page_number=i)
+                    except Exception:
+                        tables = []
+                pages.append(LoadedPage(text=text, page=i, tables=tables))
+        return pages
+    except ImportError:
+        pass  # fall through to pypdf
+
     from pypdf import PdfReader
 
     reader = PdfReader(str(path))
-    pages: list[LoadedPage] = []
     for i, page in enumerate(reader.pages, start=1):
         text = (page.extract_text() or "").strip()
-        tables: list[list[list[str]]] = []
-        try:
-            tables = _extract_pdf_tables(path, page_number=i)
-        except Exception:
-            tables = []  # tabula needs Java; degrade to text-only
+        tables = []
+        if want_tables:
+            try:
+                tables = _extract_pdf_tables(path, page_number=i)
+            except Exception:
+                tables = []
         pages.append(LoadedPage(text=text, page=i, tables=tables))
     return pages
 
