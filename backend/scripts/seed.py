@@ -17,6 +17,10 @@ import sys
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "companies"
+# In Docker/Render only backend/ plus data/companies are copied into /app, so
+# the repo-root path above does not exist. Fall back to /app/data/companies.
+if not DATA_DIR.exists():
+    DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "companies"
 
 from sqlalchemy import select  # noqa: E402
 

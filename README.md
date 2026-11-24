@@ -329,30 +329,67 @@ npm run build
 
 | Stage | Target | Notes |
 | --- | --- | --- |
-| 1 | **Vercel** | Frontend only. Set `NEXT_PUBLIC_API_URL` to the Render API URL, or use the `/backend` rewrite |
-| 2 | **Render** | FastAPI web service (Docker runtime) + a Chroma web service. Free tier sleeps after inactivity; its disk is **ephemeral** |
-| 3 | **Neon** | Serverless Postgres **and** Object Storage. Free allowance: 1 GB Postgres, 5 GB object storage, 100 CU-hrs, 5 GB egress |
-| 4 | **Chroma** | Self-host `chromadb/chroma:1.5.9` on Render. No paid disk needed — the index is rebuilt from Postgres on cold start |
+| 1 | **Neon** | Serverless Postgres **and** Object Storage. Free allowance: 1 GB Postgres, 5 GB object storage, 100 CU-hrs, 5 GB egress |
+| 2 | **Render** | FastAPI web service (Docker) + Chroma web service. `render.yaml` provisions both; free tier sleeps after inactivity and its disk is **ephemeral** |
+| 3 | **Vercel** | Frontend only. Set the root directory to `frontend` and use the same-origin `/backend` rewrite |
 
-Render backend start command:
+### Step 1 — Neon
+
+Create a project in a supported region (`us-east-2`, `us-east-1`, `eu-central-1`,
+`ap-southeast-1`). From **Connection Details** copy the pooled connection string
+and change the scheme to asyncpg with `ssl` (not `sslmode`):
+
+```env
+DATABASE_URL=postgresql+asyncpg://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?ssl=require
+```
+
+For Object Storage, create a credential with `storage:read` + `storage:write`,
+create a bucket named `finsight-documents`, and copy the branch S3 endpoint,
+region, `token_id` and `s3_secret_access_key` into:
+
+```env
+S3_ENDPOINT_URL=https://br-xxx.storage.region.aws.neon.tech
+S3_BUCKET=finsight-documents
+S3_ACCESS_KEY=nak_live_...     # token_id
+S3_SECRET_KEY=nsk_live_...     # s3_secret_access_key
+S3_REGION=us-east-2
+```
+
+### Step 2 — Render
+
+Push this repo to GitHub, then **New → Blueprint** and select it. `render.yaml`
+creates `finsight-api` and `finsight-chroma` on the free plan and prompts for the
+secret env vars (DATABASE_URL, GROQ_API_KEY, CORS_ORIGINS, S3 keys).
+
+The backend image (`backend/Dockerfile`, built from the repo root) runs this on
+every start — seed is idempotent and creates the schema on a fresh database:
 
 ```sh
 python -m scripts.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-`scripts.seed` is idempotent and guarantees the sample companies exist after a
-fresh deploy. Uploaded companies are created by ingestion, not seeding.
-
-Critical env values:
+Chroma's internal URL is `http://finsight-chroma:10000`. Other critical values:
 
 ```env
-# Neon pooler host, with asyncpg's ssl parameter (NOT sslmode)
-DATABASE_URL=postgresql+asyncpg://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?ssl=require
 GROQ_CHAT_MODEL=openai/gpt-oss-120b   # llama-3.3-70b-versatile returns 404
 COOKIE_SECURE=true
-COOKIE_SAMESITE=none                  # cross-site Vercel -> Render; use "lax" behind a same-origin rewrite
-CORS_ORIGINS=https://your-app.vercel.app
+COOKIE_SAMESITE=lax                   # same-origin via the Vercel /backend rewrite
 ```
+
+Uploaded companies are created by ingestion, not seeding.
+
+### Step 3 — Vercel
+
+Import the repo, set **Root Directory** to `frontend`, and add:
+
+```env
+NEXT_PUBLIC_API_URL=/backend
+API_UPSTREAM_URL=https://finsight-api.onrender.com
+```
+
+The browser calls `/backend/*` on your Vercel domain, and Vercel proxies to
+Render. That keeps the httpOnly cookie **same-origin** (no `SameSite=none` or
+CORS preflight). Set `CORS_ORIGINS` on Render to your Vercel URL anyway.
 
 ### ChromaDB on the free tier
 
@@ -431,7 +468,7 @@ clear extension points marked throughout.
 | Agentic router + tool registry (7 tools) | ✅ |
 | Chat with agent trace, charts, SQL panel | ✅ |
 | Charts, comparison, evaluations UI | ✅ |
-| 45 backend tests, 58 live API assertions, clean `tsc`, production build | ✅ |
+| 50 backend tests, 58 live API assertions, clean `tsc`, production build | ✅ |
 | Alembic migrations, background workers | ⏳ next |
 | Streaming answers (SSE) + real-time ingestion progress | ⏳ next |
 | Multi-user workspace invitations / RBAC | ⏳ next |

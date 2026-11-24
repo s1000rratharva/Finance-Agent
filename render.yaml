@@ -1,0 +1,66 @@
+# Render Blueprint — free tier only.
+# Deploy: Render Dashboard > New > Blueprint > connect this repo.
+# Secrets are NOT stored here; set them when prompted (or in the dashboard).
+services:
+  # ---------------------------------------------------------------------------
+  # FastAPI backend. Builds from backend/Dockerfile with the repo root as the
+  # Docker context, so data/companies is available to the seed script.
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: finsight-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    # repo root is the default dockerContext; stated here for clarity.
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false # postgresql+asyncpg://...@...-pooler.../neondb?ssl=require
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_CHAT_MODEL
+        value: openai/gpt-oss-120b
+      - key: CHROMA_HOST
+        value: finsight-chroma
+      - key: CHROMA_PORT
+        value: "10000"
+      - key: ENVIRONMENT
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: "none"
+      - key: CORS_ORIGINS
+        sync: false # https://your-app.vercel.app
+      - key: S3_ENDPOINT_URL
+        sync: false # Neon branch storage endpoint
+      - key: S3_BUCKET
+        value: finsight-documents
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_REGION
+        value: us-east-2
+
+  # ---------------------------------------------------------------------------
+  # Chroma vector index. Ephemeral disk is fine: the backend rebuilds it from
+  # Postgres chunks on every cold start.
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: finsight-chroma
+    runtime: image
+    plan: free
+    region: oregon
+    image:
+      url: docker.io/chromadb/chroma:1.5.9
+    dockerCommand: /bin/sh -c 'chroma run --path /data --port $PORT'
+    envVars:
+      - key: CHROMA_PERSIST_PATH
+        value: /data
+      - key: ANONYMIZED_TELEMETRY
+        value: "FALSE"
