@@ -3,20 +3,15 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Plus, MessageSquareText, Sparkles } from "lucide-react";
+import { Plus, MessageSquareText } from "lucide-react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { CitationPanel, MessageBubble, type ChatTurn } from "@/components/chat/message-bubble";
 import { Composer } from "@/components/chat/composer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/spinner";
-import {
-  useConversations,
-  useMessages,
-  useSendChat,
-} from "@/hooks/use-api";
+import { useConversations, useMessages, useSendChat } from "@/hooks/use-api";
 import { useAuth } from "@/providers/auth-provider";
 import { ApiError } from "@/lib/api";
 import type { Citation } from "@/lib/types";
@@ -153,11 +148,14 @@ function ChatInner() {
         </Button>
       }
     >
-      <div className="grid h-full gap-4 xl:grid-cols-[220px_minmax(0,1fr)_300px]">
-        {/* Conversation list */}
-        <aside className="hidden flex-col gap-2 xl:flex">
-          <p className="label-caps px-1">Threads</p>
-          <div className="flex flex-col gap-1.5 overflow-y-auto">
+      <div className="grid h-full gap-6 xl:grid-cols-[210px_minmax(0,1fr)_290px]">
+        {/* Thread rail */}
+        <aside className="hidden flex-col xl:flex">
+          <div className="mb-3 flex items-center justify-between border-b border-line pb-2">
+            <p className="label-caps">Threads</p>
+            <span className="num text-[10px] text-ink-400">{conversations?.length ?? 0}</span>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             {loadingConversations ? (
               <LoadingState label="Loading…" />
             ) : conversations?.length ? (
@@ -167,100 +165,109 @@ function ChatInner() {
                   type="button"
                   onClick={() => setConversationId(conversation.id)}
                   className={cn(
-                    "focus-ring rounded-lg border px-3 py-2 text-left text-xs transition-colors",
+                    "focus-ring border-l-2 px-3 py-2.5 text-left text-xs transition-colors",
                     conversation.id === conversationId
-                      ? "border-brand-500/40 bg-brand-500/8 text-brand-300"
-                      : "border-line bg-surface-900 text-ink-300 hover:border-line-strong",
+                      ? "border-l-brand-500 bg-brand-500/[0.06] text-ink-100"
+                      : "border-l-line text-ink-300 hover:border-l-line-strong hover:bg-surface-850",
                   )}
                 >
                   <span className="block truncate">{conversation.title}</span>
                 </button>
               ))
             ) : (
-              <p className="px-1 text-[11px] leading-relaxed text-ink-400">
+              <p className="px-1 pt-2 text-[11px] leading-relaxed text-ink-400">
                 No threads yet. Your conversations will appear here.
               </p>
             )}
           </div>
         </aside>
 
-        {/* Conversation */}
+        {/* Transcript */}
         <section className="flex min-h-0 flex-col">
+          <div className="mb-3 flex items-center justify-between border-b border-line pb-2">
+            <p className="label-caps">Transcript</p>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-ink-400">
+              {turns.length} turn{turns.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
           <div
             ref={scrollRef}
             className="min-h-0 flex-1 overflow-y-auto pr-1"
-            style={{ maxHeight: "calc(100vh - 220px)" }}
+            style={{ maxHeight: "calc(100vh - 250px)" }}
           >
             {turns.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center gap-6 px-4">
-                <div className="text-center">
-                  <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-500/12 text-brand-400">
-                    <Sparkles className="h-5 w-5" aria-hidden />
-                  </span>
-                  <h2 className="mt-4 text-base font-semibold text-ink-100">
-                    Ask a research question
-                  </h2>
-                  <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-ink-400">
-                    FinSight routes your question, retrieves from workspace documents and
-                    preloaded filings, runs SQL/Python where numbers are involved, and answers
-                    with citations.
+              <div className="flex h-full flex-col justify-center gap-8 py-8">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <span className="h-px w-7 bg-brand-500" aria-hidden />
+                    <p className="label-caps">Research desk</p>
+                  </div>
+                  <h2 className="display mt-4 text-4xl">Ask a research question.</h2>
+                  <p className="serif-body mt-3 max-w-xl text-ink-300">
+                    FinSight routes the question, retrieves from workspace documents and preloaded
+                    filings, runs SQL or Python where numbers are involved, and answers with
+                    citations.
                   </p>
                   {companyParam && (
-                    <div className="mt-3 flex justify-center">
+                    <div className="mt-4">
                       <Badge tone="brand">Scoped to {companyParam}</Badge>
                     </div>
                   )}
                 </div>
 
-                <div className="grid w-full max-w-2xl gap-2 sm:grid-cols-2">
-                  {SUGGESTED_PROMPTS.map((prompt) => (
+                <div className="grid gap-px border border-line bg-line sm:grid-cols-2">
+                  {SUGGESTED_PROMPTS.map((prompt, index) => (
                     <button
                       key={prompt}
                       type="button"
                       onClick={() => handleSend(prompt)}
                       disabled={busy}
-                      className="focus-ring rounded-xl border border-line bg-surface-900 p-3 text-left text-xs leading-relaxed text-ink-300 transition-colors hover:border-line-strong hover:text-ink-100 disabled:opacity-50"
+                      className="focus-ring group bg-surface-900 p-4 text-left transition-colors hover:bg-surface-850 disabled:opacity-50"
                     >
-                      {prompt}
+                      <span className="num text-[10px] text-brand-500">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="mt-2 block font-serif text-sm leading-snug text-ink-200 transition-colors group-hover:text-ink-100">
+                        {prompt}
+                      </span>
                     </button>
                   ))}
                 </div>
 
                 <Link
                   href="/documents"
-                  className="text-xs text-ink-400 transition-colors hover:text-brand-400"
+                  className="font-mono text-[10px] uppercase tracking-wider text-ink-400 transition-colors hover:text-brand-500"
                 >
-                  or upload your own filings →
+                  Or upload your own filings →
                 </Link>
               </div>
             ) : (
-              <div className="flex flex-col gap-6 py-2">
+              <div className="flex flex-col">
                 {turns.map((turn) => (
                   <div key={turn.id} id={`source-${turn.citations?.[0]?.index ?? ""}`}>
                     <MessageBubble turn={turn} onCitationClick={selectCitation} />
                   </div>
                 ))}
                 {busy && (
-                  <div className="flex items-center gap-3 pl-11 text-xs text-ink-400">
+                  <div className="py-4">
                     <LoadingState label="Retrieving, reranking and reasoning…" />
                   </div>
                 )}
                 {loadingHistory && conversationId && (
-                  <div className="pl-11">
-                    <LoadingState label="Loading thread…" />
-                  </div>
+                  <LoadingState label="Loading thread…" />
                 )}
               </div>
             )}
           </div>
 
           {error && (
-            <p className="mb-2 rounded-lg border border-bear/30 bg-bear/10 px-3 py-2 text-xs text-bear">
+            <p className="mt-3 border-l-2 border-l-bear bg-bear/5 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-bear">
               {error}
             </p>
           )}
 
-          <div className="mt-3">
+          <div className="mt-4">
             <Composer
               onSend={handleSend}
               busy={busy}
@@ -274,8 +281,8 @@ function ChatInner() {
           </div>
         </section>
 
-        {/* Citations */}
-        <aside className="hidden min-h-0 flex-col gap-3 overflow-y-auto xl:flex">
+        {/* Sources */}
+        <aside className="hidden min-h-0 flex-col gap-4 overflow-y-auto xl:flex">
           <CitationPanel
             citations={latestCitations}
             activeIndex={activeCitation}
@@ -283,20 +290,27 @@ function ChatInner() {
           />
 
           <div className="card p-4">
-            <p className="label-caps mb-2">How answers are built</p>
-            <ol className="flex flex-col gap-1.5 text-[11px] leading-relaxed text-ink-400">
-              <li>1 · Rewrite the query with conversation context</li>
-              <li>2 · Route: rag / sql / python / chart / compare / risk</li>
-              <li>3 · Dense + BM25 retrieval, fused with RRF</li>
-              <li>4 · Rerank, then answer with inline [n] citations</li>
+            <p className="label-caps mb-3">How answers are built</p>
+            <ol>
+              {[
+                "Rewrite the query with conversation context",
+                "Route: rag / sql / python / chart / compare / risk",
+                "Dense + BM25 retrieval, fused with RRF",
+                "Rerank, then answer with inline [n] citations",
+              ].map((step, index) => (
+                <li key={step} className="ledger-row items-start font-mono text-[10px] leading-relaxed text-ink-400">
+                  <span className="num w-5 shrink-0 pt-px text-brand-500">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
             </ol>
           </div>
 
-          <div className="card p-4">
-            <p className="flex items-center gap-1.5 text-[11px] text-ink-400">
-              <MessageSquareText className="h-3 w-3" aria-hidden />
-              Workspace isolation is enforced per request — retrieval never crosses tenants.
-            </p>
+          <div className="card flex items-start gap-2 p-4 text-[11px] leading-relaxed text-ink-400">
+            <MessageSquareText className="mt-0.5 h-3 w-3 shrink-0 text-brand-500" aria-hidden />
+            Workspace isolation is enforced per request — retrieval never crosses tenants.
           </div>
         </aside>
       </div>

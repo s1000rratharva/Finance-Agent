@@ -45,7 +45,7 @@ export function KPITile({
         : ArrowDownRight;
 
   return (
-    <div className={cn("card card-hover flex flex-col gap-2 p-4", className)}>
+    <div className={cn("card card-hover flex flex-col gap-2 border-t-2 border-t-line p-4", className)}>
       <div className="flex items-center justify-between gap-2">
         <span className="label-caps truncate">{label}</span>
         {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-ink-400" aria-hidden />}
@@ -54,7 +54,7 @@ export function KPITile({
       {loading ? (
         <Skeleton className="h-7 w-24" />
       ) : (
-        <span className="num text-xl font-semibold text-ink-100">{display}</span>
+        <span className="num text-2xl text-ink-100">{display}</span>
       )}
 
       <div className="flex items-center justify-between gap-2">

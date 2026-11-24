@@ -1,165 +1,246 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { APP_TAGLINE } from "@/lib/constants";
-import {
-  ArrowRight,
-  Building2,
-  ChartNoAxesCombined,
-  FileUp,
-  GitCompareArrows,
-  MessageSquareText,
-  ShieldCheck,
-  Sparkles,
-  Workflow,
-} from "lucide-react";
 
 const FEATURES = [
   {
-    icon: MessageSquareText,
-    title: "Cited RAG, not vibes",
-    body: "Hybrid search (BM25 + vectors), query rewriting and reranking answer with inline [n] citations back to the exact page.",
+    title: "Cited retrieval",
+    body: "Dense vectors and BM25 are fused with reciprocal rank fusion, reranked, then cited back to the exact page and section.",
   },
   {
-    icon: ChartNoAxesCombined,
-    title: "SQL + Python analytics",
-    body: "Numbers come from Postgres and a guarded Python calculator — never from the model's arithmetic.",
+    title: "Deterministic numbers",
+    body: "SQL and a guarded Python layer compute the figures. The model explains them; it never invents them.",
   },
   {
-    icon: GitCompareArrows,
-    title: "Multi-year comparisons",
-    body: "Compare Reliance, TCS and Infosys across FY21–FY25 on revenue, margin, debt, cash flow and ratios.",
+    title: "Peer comparison",
+    body: "Put Reliance, TCS and Infosys side by side across five fiscal years of revenue, margin, leverage and cash flow.",
   },
   {
-    icon: Workflow,
-    title: "Agentic task routing",
-    body: "A router classifies each request and picks the right tool: retrieve, query, compute, chart or assess risk.",
+    title: "Routed questions",
+    body: "A router sends each query down the right path: retrieve, query, compute, chart, compare or assess risk.",
   },
   {
-    icon: FileUp,
-    title: "Your documents too",
-    body: "Upload PDFs, Excel, CSV and Word files. Text and numeric tables are extracted and indexed per workspace.",
+    title: "Your own filings",
+    body: "PDF, Excel, CSV and Word uploads are extracted, chunked and indexed inside your workspace only.",
   },
   {
-    icon: ShieldCheck,
-    title: "Tenant-isolated by design",
-    body: "Workspace-scoped collections, storage keys and queries. One tenant can never read another's data.",
+    title: "Quality gate",
+    body: "RAGAS runs replay a labelled dataset before changes ship, so retrieval regressions are visible.",
   },
 ];
 
-const STACK = ["Next.js 16", "FastAPI", "PostgreSQL", "ChromaDB", "Groq", "Tailwind 4", "RAGAS"];
+const STACK = ["Next.js", "FastAPI", "PostgreSQL", "ChromaDB", "Groq", "RAGAS"];
+
+const COVERAGE = [
+  { name: "Reliance Industries", ticker: "RELIANCE", note: "Energy · Materials · Retail" },
+  { name: "Tata Consultancy Services", ticker: "TCS", note: "Information technology" },
+  { name: "Infosys", ticker: "INFY", note: "Information technology" },
+];
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="grid-backdrop pointer-events-none absolute inset-0" aria-hidden />
+    <div className="min-h-screen bg-surface-950 paper-grain">
+      {/* Masthead */}
+      <header className="border-b border-line bg-surface-950/80">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 lg:px-10">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="font-serif text-[26px] leading-none tracking-[-0.06em]">
+              F<span className="text-brand-500">/</span>S
+            </span>
+            <span>
+              <span className="block font-serif text-[15px] leading-none tracking-tight">
+                FinSight
+              </span>
+              <span className="label-caps mt-1.5 block">Research terminal</span>
+            </span>
+          </Link>
 
-      {/* Header */}
-      <header className="relative z-10 flex h-16 items-center justify-between px-6 lg:px-10">
-        <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-brand-500 text-surface-950">
-            <Sparkles className="h-4 w-4" aria-hidden />
-          </span>
-          <span className="text-sm font-semibold tracking-tight">
-            FinSight <span className="text-brand-400">AI</span>
-          </span>
+          <nav className="flex items-center gap-5 sm:gap-7">
+            <a href="#method" className="label-caps hidden transition-colors hover:text-ink-100 sm:block">
+              Method
+            </a>
+            <a href="#coverage" className="label-caps hidden transition-colors hover:text-ink-100 sm:block">
+              Coverage
+            </a>
+            <Link
+              href="/login"
+              className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-300 transition-colors hover:text-ink-100"
+            >
+              Sign in
+            </Link>
+            <Link href="/register">
+              <Button size="sm">Get access</Button>
+            </Link>
+          </nav>
         </div>
-        <nav className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="focus-ring rounded-lg px-3 py-2 text-sm text-ink-300 transition-colors hover:text-ink-100"
-          >
-            Sign in
-          </Link>
-          <Link href="/register">
-            <Button size="sm">Get started</Button>
-          </Link>
-        </nav>
       </header>
 
-      {/* Hero */}
-      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-16 lg:px-10">
-        <section className="max-w-3xl">
-          <Badge tone="brand" className="mb-5">
-            Production-oriented financial intelligence
-          </Badge>
-          <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-ink-100 sm:text-5xl">
-            Financial research with <span className="text-brand-400">sources you can check</span>.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-300">
-            {APP_TAGLINE} Explore preloaded fundamentals for Reliance, TCS and Infosys, upload
-            your own filings, and get cited answers backed by hybrid retrieval, SQL analytics
-            and a guarded Python calculation layer.
-          </p>
+      <main className="mx-auto max-w-6xl px-6 lg:px-10">
+        {/* Hero */}
+        <section className="grid gap-14 py-16 lg:grid-cols-[1.22fr_0.78fr] lg:items-start lg:py-24">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 bg-brand-500" aria-hidden />
+              <p className="label-caps">Issue 01 · Financial intelligence</p>
+            </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/register">
-              <Button size="lg">
-                <ArrowRight className="h-4 w-4" aria-hidden />
-                Start researching
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline">
-                Sign in to a workspace
-              </Button>
-            </Link>
+            <h1 className="display mt-6 max-w-2xl text-5xl sm:text-6xl lg:text-[68px]">
+              Research that <span className="text-brand-500">shows its work.</span>
+            </h1>
+
+            <p className="serif-body mt-6 max-w-xl text-ink-300">
+              FinSight turns filings and uploaded documents into answers you can audit. Every
+              figure is traced to a source; every claim carries its evidence.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-6">
+              <Link href="/register">
+                <Button size="lg">
+                  Open a workspace
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Button>
+              </Link>
+              <a
+                href="#method"
+                className="border-b border-line-strong pb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-300 transition-colors hover:border-brand-500 hover:text-ink-100"
+              >
+                Read the method
+              </a>
+            </div>
+
+            <div className="mt-14 grid max-w-xl grid-cols-3 border-t border-line">
+              {[
+                ["03", "Companies"],
+                ["05", "Fiscal years"],
+                ["01", "Isolated workspace"],
+              ].map(([value, label]) => (
+                <div key={label} className="border-r border-line pr-4 last:border-r-0">
+                  <p className="num text-2xl text-ink-100">{value}</p>
+                  <p className="label-caps mt-1.5">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-2">
+          {/* Illustrative answer card — deliberately paper, not a glowing chat bubble. */}
+          <aside className="card self-start">
+            <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+              <span className="label-caps">Illustrative query</span>
+              <span className="num text-[10px] text-ink-400">01 / 04</span>
+            </div>
+            <div className="p-5">
+              <p className="font-serif text-lg leading-snug text-ink-100">
+                “How did operating margin move for TCS between FY21 and FY25?”
+              </p>
+
+              <div className="my-5 border-t border-line" />
+
+              <p className="label-caps mb-2">Answer</p>
+              <p className="serif-body text-ink-200">
+                Margin expanded steadily, with the sharpest step in FY22. Revenue growth and
+                stable cost discipline drove the movement.
+                <span className="citation-mark ml-1">1</span>
+                <span className="citation-mark ml-0.5">2</span>
+              </p>
+
+              <div className="mt-5 border border-line bg-surface-850 p-3">
+                <p className="label-caps mb-2">Evidence ledger</p>
+                <div className="flex items-start justify-between gap-3 border-b border-line py-1.5 font-mono text-[10px] text-ink-400">
+                  <span>TCS · FY25 annual report</span>
+                  <span className="shrink-0">p.42</span>
+                </div>
+                <div className="flex items-start justify-between gap-3 pt-1.5 font-mono text-[10px] text-ink-400">
+                  <span>TCS · FY22 results release</span>
+                  <span className="shrink-0">p.08</span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-line pt-3 font-mono text-[10px] uppercase tracking-wider text-ink-400">
+                <span>Route: sql → rag</span>
+                <span className="num">1.8s</span>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        {/* Method */}
+        <section id="method" className="border-t border-line py-14">
+          <div className="grid gap-10 lg:grid-cols-[0.32fr_1fr]">
+            <div>
+              <p className="label-caps">01 / Method</p>
+              <h2 className="display mt-3 text-3xl">
+                Numbers first.
+                <br />
+                Narrative second.
+              </h2>
+              <p className="mt-4 max-w-xs text-xs leading-relaxed text-ink-400">
+                A research tool built around provenance, not plausible prose.
+              </p>
+            </div>
+
+            <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((feature, index) => (
+                <article key={feature.title} className="border-t border-line-strong pt-4">
+                  <p className="num text-[10px] text-brand-500">
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="mt-3 text-base text-ink-100">{feature.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-ink-400">{feature.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Coverage */}
+        <section id="coverage" className="border-t border-line py-14">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="label-caps">02 / Coverage</p>
+              <h2 className="display mt-3 max-w-xl text-3xl">
+                Three benchmark names, five years deep.
+              </h2>
+            </div>
+            <p className="max-w-sm text-xs leading-relaxed text-ink-400">
+              Statements, ratios, trends and rule-based risk flags are preloaded. Registering a
+              workspace provisions an isolated copy of the dataset.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-3">
+            {COVERAGE.map((company) => (
+              <div key={company.ticker} className="bg-surface-900 p-5">
+                <p className="num text-[10px] text-brand-500">{company.ticker}</p>
+                <p className="mt-3 font-serif text-lg text-ink-100">{company.name}</p>
+                <p className="mt-1 text-xs text-ink-400">{company.note}</p>
+                <p className="mt-5 border-t border-line pt-3 font-mono text-[10px] uppercase tracking-wider text-ink-400">
+                  FY21 — FY25 · ready
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Stack */}
+        <section className="border-t border-line py-10">
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+            <p className="label-caps">System</p>
             {STACK.map((item) => (
-              <span
-                key={item}
-                className="rounded-full border border-line bg-surface-900 px-3 py-1 text-[11px] text-ink-400"
-              >
+              <span key={item} className="font-mono text-[11px] uppercase tracking-wider text-ink-300">
                 {item}
               </span>
             ))}
           </div>
         </section>
-
-        {/* Feature grid */}
-        <section className="mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, body }) => (
-            <article
-              key={title}
-              className="card card-hover p-5"
-            >
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-500/12 text-brand-400">
-                <Icon className="h-4.5 w-4.5" aria-hidden />
-              </span>
-              <h2 className="mt-3.5 text-sm font-semibold text-ink-100">{title}</h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-ink-400">{body}</p>
-            </article>
-          ))}
-        </section>
-
-        {/* Company strip */}
-        <section className="card mt-16 flex flex-wrap items-center justify-between gap-6 p-6">
-          <div className="flex items-center gap-3">
-            <Building2 className="h-5 w-5 text-ink-400" aria-hidden />
-            <div>
-              <p className="text-sm font-medium text-ink-100">Preloaded coverage</p>
-              <p className="text-xs text-ink-400">
-                Five fiscal years of statements, ratios and risk signals — ready on day one.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {["Reliance Industries", "TCS", "Infosys"].map((name) => (
-              <Badge key={name} tone="neutral">
-                {name}
-              </Badge>
-            ))}
-          </div>
-        </section>
-
-        <footer className="mt-16 flex items-center justify-between border-t border-line pt-6 text-xs text-ink-400">
-          <span>FinSight AI — sample data is illustrative, not investment advice.</span>
-          <span className="num">v0.1.0</span>
-        </footer>
       </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-3 px-6 py-6 font-mono text-[10px] uppercase tracking-wider text-ink-400 lg:px-10">
+          <span>FinSight AI · illustrative data, not investment advice</span>
+          <span>Built for research desks</span>
+        </div>
+      </footer>
     </div>
   );
 }

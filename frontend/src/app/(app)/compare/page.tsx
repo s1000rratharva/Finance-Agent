@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GitCompareArrows, Check } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -15,10 +15,9 @@ import { useCompanies } from "@/hooks/use-api";
 import { formatCurrency, formatNumber, formatRatio } from "@/lib/format";
 import { METRICS, METRIC_GROUPS, metricLabel } from "@/lib/constants";
 import { colorForIndex, cn } from "@/lib/utils";
-import type { ChartSpec } from "@/lib/types";
+import type { ChartSpec, ComparisonResponse } from "@/lib/types";
 import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import type { ComparisonResponse } from "@/lib/types";
 
 function CompareInner() {
   const searchParams = useSearchParams();
@@ -29,11 +28,15 @@ function CompareInner() {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const [selected, setSelected] = useState<string[]>(
-    initial.length ? initial : (companies?.slice(0, 2).map((c) => c.slug) ?? []),
-  );
+  const [selected, setSelected] = useState<string[]>(initial);
   const [metric, setMetric] = useState("revenue");
   const [group, setGroup] = useState<(typeof METRIC_GROUPS)[number]["key"]>("pnl");
+
+  // Select the first two seeded names once companies resolve, unless a deep link won.
+  useEffect(() => {
+    if (initial.length || !companies?.length || selected.length) return;
+    setSelected(companies.slice(0, 2).map((c) => c.slug));
+  }, [companies, initial.length, selected.length]);
 
   const enabled = selected.length >= 2 && Boolean(companies?.length);
 
@@ -88,13 +91,13 @@ function CompareInner() {
       title="Compare"
       subtitle="Compare companies across fiscal years on any statement line"
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         {/* Company selector */}
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-1.5">
-                <GitCompareArrows className="h-3.5 w-3.5 text-brand-400" aria-hidden />
+              <CardTitle className="flex items-center gap-2">
+                <GitCompareArrows className="h-3.5 w-3.5 text-brand-500" aria-hidden />
                 Select companies
               </CardTitle>
               <CardDescription>Pick 2–4 names to plot side by side</CardDescription>
@@ -111,15 +114,15 @@ function CompareInner() {
                   onClick={() => toggle(company.slug)}
                   disabled={!active && selected.length >= 4}
                   className={cn(
-                    "focus-ring flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors disabled:opacity-40",
+                    "focus-ring flex items-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-40",
                     active
-                      ? "border-brand-500/50 bg-brand-500/10 text-brand-300"
-                      : "border-line bg-surface-850 text-ink-300 hover:border-line-strong",
+                      ? "border-brand-500 bg-brand-500/[0.08] text-brand-500"
+                      : "border-line bg-surface-900 text-ink-300 hover:border-line-strong hover:text-ink-100",
                   )}
                 >
                   {active && <Check className="h-3 w-3" aria-hidden />}
                   <span className="font-medium">{company.ticker}</span>
-                  <span className="text-ink-400">{company.name}</span>
+                  <span className="normal-case tracking-normal text-ink-400">{company.name}</span>
                 </button>
               );
             })}
@@ -133,7 +136,7 @@ function CompareInner() {
               <CardTitle>Metric</CardTitle>
               <CardDescription>Grouped by statement section</CardDescription>
             </div>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-5">
               {METRIC_GROUPS.map((item) => (
                 <button
                   key={item.key}
@@ -144,10 +147,10 @@ function CompareInner() {
                     if (first) setMetric(first.key);
                   }}
                   className={cn(
-                    "focus-ring rounded-lg px-3 py-1.5 text-xs transition-colors",
+                    "focus-ring border-b-2 pb-1 font-mono text-[10px] uppercase tracking-wider transition-colors",
                     group === item.key
-                      ? "bg-surface-700 text-ink-100"
-                      : "text-ink-400 hover:bg-surface-850",
+                      ? "border-brand-500 text-ink-100"
+                      : "border-transparent text-ink-400 hover:text-ink-200",
                   )}
                 >
                   {item.label}
@@ -163,10 +166,10 @@ function CompareInner() {
                 title={item.description}
                 onClick={() => setMetric(item.key)}
                 className={cn(
-                  "focus-ring rounded-lg border px-3 py-1.5 text-xs transition-colors",
+                  "focus-ring border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors",
                   metric === item.key
-                    ? "border-brand-500/50 bg-brand-500/10 text-brand-300"
-                    : "border-line bg-surface-850 text-ink-300 hover:border-line-strong",
+                    ? "border-brand-500 bg-brand-500/[0.08] text-brand-500"
+                    : "border-line bg-surface-900 text-ink-300 hover:border-line-strong hover:text-ink-100",
                 )}
               >
                 {item.label}
@@ -205,20 +208,21 @@ function CompareInner() {
               <CardTitle>Underlying values</CardTitle>
               <CardDescription>Exact figures behind the chart</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
-              <table className="w-full text-xs">
+            <CardContent className="overflow-x-auto">
+              <table className="ledger text-xs">
                 <thead>
-                  <tr className="border-b border-line text-left">
-                    <th className="px-4 py-2.5 font-medium text-ink-400">Fiscal year</th>
+                  <tr>
+                    <th>Fiscal year</th>
                     {comparison.companies.map((company, index) => (
-                      <th key={company.id} className="px-4 py-2.5 text-right font-medium">
+                      <th key={company.id}>
                         <span
-                          className="inline-flex items-center gap-1.5"
+                          className="inline-flex items-center justify-end gap-1.5"
                           style={{ color: colorForIndex(index) }}
                         >
                           <span
-                            className="h-2 w-2 rounded-full"
+                            className="h-2 w-2"
                             style={{ backgroundColor: colorForIndex(index) }}
+                            aria-hidden
                           />
                           {company.ticker}
                         </span>
@@ -228,17 +232,12 @@ function CompareInner() {
                 </thead>
                 <tbody>
                   {comparison.series.map((row) => (
-                    <tr key={row.fiscal_year} className="border-b border-line/60">
-                      <td className="num px-4 py-2.5 font-medium text-ink-200">
-                        FY{row.fiscal_year}
-                      </td>
+                    <tr key={row.fiscal_year}>
+                      <td className="num font-medium text-ink-200">FY{row.fiscal_year}</td>
                       {comparison.companies.map((company) => {
                         const value = row.values[company.slug];
                         return (
-                          <td
-                            key={company.id}
-                            className="num px-4 py-2.5 text-right text-ink-200"
-                          >
+                          <td key={company.id} className="num text-ink-200">
                             {value === null || value === undefined
                               ? "—"
                               : metric === "eps"

@@ -41,75 +41,81 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="grid min-h-screen place-items-center px-6 py-12">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="text-sm text-ink-400 hover:text-ink-200">
-          ← Back to home
-        </Link>
+    <div className="w-full max-w-[380px]">
+      <Link href="/" className="label-caps transition-colors hover:text-ink-100">
+        ← Back to index
+      </Link>
 
-        <h1 className="mt-8 text-2xl font-semibold tracking-tight text-ink-100">
-          Create your workspace
-        </h1>
-        <p className="mt-1.5 text-sm text-ink-400">
-          You get an isolated workspace with the preloaded company data included.
-        </p>
-
-        <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
-          <Input
-            label="Full name"
-            name="name"
-            autoComplete="name"
-            required
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Priya Sharma"
-          />
-          <Input
-            label="Email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="analyst@firm.com"
-          />
-          <Input
-            label="Password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 8 characters"
-            error={passwordTooShort ? "Password must be at least 8 characters." : null}
-          />
-
-          {error && (
-            <p className="rounded-lg border border-bear/30 bg-bear/10 px-3 py-2 text-xs text-bear">
-              {error}
-            </p>
-          )}
-
-          <Button type="submit" size="lg" loading={submitting} disabled={passwordTooShort}>
-            Create account
-          </Button>
-        </form>
-
-        <p className="mt-6 text-sm text-ink-400">
-          Already registered?{" "}
-          <Link href="/login" className="text-brand-400 hover:text-brand-300">
-            Sign in
-          </Link>
-        </p>
-
-        <p className="mt-8 rounded-lg border border-line bg-surface-900 p-3 text-[11px] leading-relaxed text-ink-400">
-          Sample financial figures bundled with FinSight are illustrative. This platform is a
-          research tool, not investment advice.
-        </p>
+      <div className="mt-10 flex items-center gap-3">
+        <span className="h-px w-7 bg-brand-500" aria-hidden />
+        <p className="label-caps">New workspace</p>
       </div>
+
+      <h1 className="display mt-4 text-4xl">Set up your desk.</h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink-400">
+        Registration provisions an isolated workspace with the preloaded company dataset.
+      </p>
+
+      <form onSubmit={onSubmit} className="mt-9 flex flex-col gap-5">
+        <Input
+          label="Full name"
+          name="name"
+          autoComplete="name"
+          required
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Priya Sharma"
+        />
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="analyst@firm.com"
+        />
+        <Input
+          label="Password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="At least 8 characters"
+          error={passwordTooShort ? "Password must be at least 8 characters." : null}
+        />
+
+        {error && (
+          <p className="border-l-2 border-l-bear bg-bear/5 px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-bear">
+            {error}
+          </p>
+        )}
+
+        <Button
+          type="submit"
+          size="lg"
+          loading={submitting}
+          disabled={passwordTooShort}
+          className="mt-2 w-full"
+        >
+          Create workspace
+        </Button>
+      </form>
+
+      <p className="mt-8 border-t border-line pt-5 text-sm text-ink-400">
+        Already registered?{" "}
+        <Link href="/login" className="text-brand-500 underline-offset-4 hover:underline">
+          Sign in
+        </Link>
+      </p>
+
+      <p className="mt-6 border-l-2 border-line pl-3 font-mono text-[10px] uppercase leading-relaxed tracking-wider text-ink-400">
+        Sample financial figures are illustrative. This is a research tool, not investment advice.
+      </p>
     </div>
   );
 }

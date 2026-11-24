@@ -47,15 +47,15 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-line-strong bg-surface-850 px-3 py-2 shadow-2xl">
-      <p className="mb-1 text-[11px] font-medium text-ink-300">
+    <div className="border border-line-strong bg-surface-900 px-3 py-2">
+      <p className="label-caps mb-1.5">
         {Array.isArray(label) ? label.join(" · ") : label}
       </p>
       <div className="flex flex-col gap-1">
         {payload.map((entry, index) => (
           <div key={index} className="flex items-center gap-2 text-xs">
             <span
-              className="h-2 w-2 shrink-0 rounded-full"
+              className="h-2 w-2 shrink-0"
               style={{ backgroundColor: entry.color }}
               aria-hidden
             />
@@ -98,7 +98,7 @@ export function MetricChart({ spec, height = 300, className, yScale = "value" }:
     return (
       <div
         className={cn(
-          "grid place-items-center rounded-lg border border-dashed border-line text-xs text-ink-400",
+          "grid place-items-center border border-dashed border-line font-mono text-[10px] uppercase tracking-wider text-ink-400",
           className,
         )}
         style={{ height }}
@@ -113,19 +113,19 @@ export function MetricChart({ spec, height = 300, className, yScale = "value" }:
   const shared = yScale === "value";
 
   const axisProps = {
-    stroke: "#2a3450",
-    tick: { fill: "#6b7794", fontSize: 11 },
+    stroke: "#b3aa98",
+    tick: { fill: "#5d5e51", fontSize: 10 },
     tickLine: false,
-    axisLine: { stroke: "#1e2740" },
+    axisLine: { stroke: "#d2ccbe" },
   } as const;
 
-  const grid = <CartesianGrid stroke="#1e2740" strokeDasharray="3 3" vertical={false} />;
+  const grid = <CartesianGrid stroke="#d2ccbe" strokeDasharray="2 4" vertical={false} />;
   const tooltip = <ChartTooltip unit={spec.unit} />;
   const legend =
     spec.series.length > 1 ? (
       <Legend
-        wrapperStyle={{ fontSize: 11, color: "#98a3bd", paddingTop: 8 }}
-        iconType="circle"
+        wrapperStyle={{ fontSize: 10, color: "#5d5e51", paddingTop: 10 }}
+        iconType="rect"
         iconSize={7}
       />
     ) : null;
@@ -151,8 +151,8 @@ export function MetricChart({ spec, height = 300, className, yScale = "value" }:
               dataKey={series.key}
               name={series.label}
               fill={colorForIndex(index)}
-              radius={[4, 4, 0, 0]}
-              maxBarSize={38}
+              radius={[0, 0, 0, 0]}
+              maxBarSize={34}
             />
           ))}
         </BarChart>
@@ -182,14 +182,14 @@ export function MetricChart({ spec, height = 300, className, yScale = "value" }:
             stroke: color,
             strokeWidth: 2,
             dot: false,
-            activeDot: { r: 4, strokeWidth: 0 },
+            activeDot: { r: 3, strokeWidth: 0 },
           };
           return isArea ? (
             <Curve
               key={series.key}
               {...sharedProps}
               fill={color}
-              fillOpacity={0.14}
+              fillOpacity={0.1}
               stackId={shared ? undefined : "stack"}
             />
           ) : (

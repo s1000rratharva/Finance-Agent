@@ -22,10 +22,10 @@ export function Toast({ message, tone = "info", onDismiss, durationMs = 3200 }: 
     <div
       role="status"
       className={cn(
-        "fixed bottom-5 right-5 z-50 max-w-sm rounded-lg border px-4 py-3 text-sm shadow-2xl",
-        tone === "success" && "border-bull/30 bg-surface-850 text-bull",
-        tone === "error" && "border-bear/30 bg-surface-850 text-bear",
-        tone === "info" && "border-line-strong bg-surface-850 text-ink-200",
+        "fixed bottom-6 right-6 z-50 max-w-sm border-l-2 bg-surface-900 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.06em]",
+        tone === "success" && "border-l-bull text-bull",
+        tone === "error" && "border-l-bear text-bear",
+        tone === "info" && "border-l-brand-500 text-ink-200",
       )}
     >
       {message}

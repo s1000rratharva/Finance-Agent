@@ -120,14 +120,14 @@ export default function CompanyDetailPage() {
       ) : (
         <div className="flex flex-col gap-6">
           {/* Header card */}
-          <Card className="p-5">
+          <Card className="border-l-2 border-l-brand-500 p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex items-start gap-4">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-surface-700 text-base font-semibold text-ink-100">
+                <span className="grid h-14 w-14 shrink-0 place-items-center border border-line bg-surface-850 font-serif text-base text-ink-100">
                   {company.ticker.slice(0, 3)}
                 </span>
                 <div>
-                  <h2 className="text-lg font-semibold tracking-tight text-ink-100">
+                  <h2 className="display text-2xl text-ink-100">
                     {company.name}
                   </h2>
                   <p className="mt-1 max-w-2xl text-xs leading-relaxed text-ink-400">
@@ -161,7 +161,7 @@ export default function CompanyDetailPage() {
                 className={cn(
                   "focus-ring -mb-px flex items-center gap-1.5 border-b-2 px-4 py-2.5 text-xs font-medium transition-colors",
                   tab === key
-                    ? "border-brand-500 text-brand-300"
+                    ? "border-brand-500 text-brand-500"
                     : "border-transparent text-ink-400 hover:text-ink-200",
                 )}
               >
@@ -199,7 +199,7 @@ export default function CompanyDetailPage() {
                     <select
                       value={trendMetric}
                       onChange={(event) => setTrendMetric(event.target.value)}
-                      className="h-9 rounded-lg border border-line bg-surface-850 px-3 text-xs text-ink-200 focus:border-brand-500 focus:outline-none"
+                      className="h-9 border border-line bg-surface-900 px-3 font-mono text-[11px] text-ink-200 focus:border-brand-500 focus:outline-none"
                     >
                       {METRICS.map((metric) => (
                         <option key={metric.key} value={metric.key}>
@@ -264,31 +264,24 @@ export default function CompanyDetailPage() {
                     <EmptyState title="No ratio data" />
                   </div>
                 ) : (
-                  <table className="w-full text-xs">
+                  <table className="ledger text-xs">
                     <thead>
-                      <tr className="border-b border-line text-left">
-                        <th className="px-4 py-2.5 font-medium text-ink-400">Fiscal year</th>
+                      <tr>
+                        <th>Fiscal year</th>
                         {Object.keys(ratios[0].ratios).map((key) => (
-                          <th
-                            key={key}
-                            className="px-4 py-2.5 text-right font-medium text-ink-400"
-                          >
-                            {metricLabel(key)}
-                          </th>
+                          <th key={key}>{metricLabel(key)}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {ratios.map((row) => (
-                        <tr key={row.fiscal_year} className="border-b border-line/60">
-                          <td className="num px-4 py-2.5 font-medium text-ink-200">
-                            FY{row.fiscal_year}
-                          </td>
+                        <tr key={row.fiscal_year}>
+                          <td className="num font-medium text-ink-200">FY{row.fiscal_year}</td>
                           {Object.entries(row.ratios).map(([key, value]) => (
                             <td
                               key={key}
                               className={cn(
-                                "num px-4 py-2.5 text-right",
+                                "num",
                                 value === null ? "text-ink-400" : "text-ink-200",
                               )}
                             >
@@ -322,7 +315,7 @@ export default function CompanyDetailPage() {
                       <div
                         key={flag.key}
                         className={cn(
-                          "rounded-lg border p-3.5",
+                          "border p-3.5",
                           flag.severity === "high" && "border-bear/35 bg-bear/6",
                           flag.severity === "medium" && "border-warn/35 bg-warn/6",
                           flag.severity === "low" && "border-line bg-surface-850",
@@ -359,7 +352,7 @@ export default function CompanyDetailPage() {
                   <p className="text-xs leading-relaxed text-ink-300">
                     {risks?.summary ?? "—"}
                   </p>
-                  <p className="mt-4 rounded-lg border border-line bg-surface-850 p-3 text-[11px] leading-relaxed text-ink-400">
+                  <p className="mt-4 border border-line bg-surface-850 p-3 text-[11px] leading-relaxed text-ink-400">
                     Flags are threshold-based heuristics on reported figures. They are a
                     starting point for research, not a credit opinion.
                   </p>
@@ -412,26 +405,19 @@ function StatementsTable({
             <EmptyState title="No statements" />
           </div>
         ) : (
-          <table className="w-full text-xs">
+          <table className="ledger text-xs">
             <thead>
-              <tr className="border-b border-line text-left">
-                <th className="px-4 py-2.5 font-medium text-ink-400">Fiscal year</th>
+              <tr>
+                <th>Fiscal year</th>
                 {columns.map((column) => (
-                  <th key={column.key} className="px-4 py-2.5 text-right font-medium text-ink-400">
-                    {column.label}
-                  </th>
+                  <th key={column.key}>{column.label}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {[...statements].reverse().map((statement) => (
-                <tr
-                  key={statement.id}
-                  className="border-b border-line/60 transition-colors hover:bg-surface-850/60"
-                >
-                  <td className="num px-4 py-2.5 font-medium text-ink-100">
-                    FY{statement.fiscal_year}
-                  </td>
+                <tr key={statement.id}>
+                  <td className="num font-medium text-ink-100">FY{statement.fiscal_year}</td>
                   {columns.map((column) => {
                     const value = statement[column.key as keyof typeof statement];
                     const numeric = typeof value === "number" ? value : null;
@@ -439,7 +425,7 @@ function StatementsTable({
                       <td
                         key={column.key}
                         className={cn(
-                          "num px-4 py-2.5 text-right",
+                          "num",
                           numeric === null
                             ? "text-ink-400"
                             : numeric < 0

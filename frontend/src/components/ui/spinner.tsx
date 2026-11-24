@@ -6,7 +6,7 @@ export function Spinner({ className, label = "Loading" }: { className?: string; 
       role="status"
       aria-label={label}
       className={cn(
-        "inline-block h-4 w-4 animate-spin rounded-full border-2 border-ink-400 border-t-brand-400",
+        "inline-block h-3.5 w-3.5 animate-spin border border-ink-400 border-t-brand-500",
         className,
       )}
     />
@@ -15,7 +15,7 @@ export function Spinner({ className, label = "Loading" }: { className?: string; 
 
 export function LoadingState({ label = "Loading…" }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-sm text-ink-400">
+    <div className="flex items-center justify-center gap-2 py-10 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
       <Spinner />
       {label}
     </div>
@@ -23,12 +23,7 @@ export function LoadingState({ label = "Loading…" }: { label?: string }) {
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn("animate-pulse rounded-md bg-surface-800", className)}
-    />
-  );
+  return <div aria-hidden className={cn("animate-pulse bg-surface-800", className)} />;
 }
 
 export function SkeletonRows({ rows = 4 }: { rows?: number }) {

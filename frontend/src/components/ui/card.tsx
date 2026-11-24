@@ -13,7 +13,7 @@ export const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEleme
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("flex flex-col gap-1 border-b border-line px-5 py-4", className)}
+      className={cn("flex flex-col gap-1 border-b border-line px-5 py-3.5", className)}
       {...props}
     />
   ),
@@ -24,7 +24,7 @@ export const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadi
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-sm font-semibold text-ink-100", className)}
+      className={cn("font-serif text-base font-medium tracking-tight text-ink-100", className)}
       {...props}
     />
   ),

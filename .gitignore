@@ -18,11 +18,15 @@ data/raw/
 data/processed/
 data/uploads/
 
-# Local smoke databases
+# Local smoke / development databases
 backend/smoke.db*
+backend/dev.db*
 
 # Databases
 chroma_db/
+
+# TypeScript incremental cache
+*.tsbuildinfo
 
 # Jupyter
 .ipynb_checkpoints/

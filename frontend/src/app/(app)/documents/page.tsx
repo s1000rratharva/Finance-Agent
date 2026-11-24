@@ -16,7 +16,6 @@ import {
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge, statusTone } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Toast } from "@/components/ui/toast";
@@ -45,7 +44,7 @@ function StatusIcon({ status }: { status: string }) {
   if (status === "ready") return <CheckCircle2 className="h-3.5 w-3.5 text-bull" aria-hidden />;
   if (status === "failed") return <AlertCircle className="h-3.5 w-3.5 text-bear" aria-hidden />;
   if (status === "processing")
-    return <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-400" aria-hidden />;
+    return <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-500" aria-hidden />;
   return <Clock className="h-3.5 w-3.5 text-warn" aria-hidden />;
 }
 
@@ -91,13 +90,19 @@ export default function DocumentsPage() {
       title="Documents"
       subtitle="Upload PDFs, Excel, CSV and Word files — text and tables are extracted and indexed"
     >
-      <div className="flex flex-col gap-5">
-        {/* Stats */}
-        <div className="grid gap-3 sm:grid-cols-3">
-          <MiniStat label="Documents" value={stats?.documents ?? 0} />
-          <MiniStat label="Indexed chunks" value={stats?.chunks ?? 0} />
-          <MiniStat label="Ready" value={readyCount} tone="text-bull" />
-        </div>
+      <div className="flex flex-col gap-6">
+        {/* Ledger */}
+        <section>
+          <div className="mb-4 flex items-center gap-3">
+            <p className="label-caps">Ingest register</p>
+            <span className="h-px flex-1 bg-line" aria-hidden />
+          </div>
+          <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
+            <MiniStat label="Documents" value={stats?.documents ?? 0} />
+            <MiniStat label="Indexed chunks" value={stats?.chunks ?? 0} />
+            <MiniStat label="Ready" value={readyCount} tone="text-bull" />
+          </div>
+        </section>
 
         {/* Dropzone */}
         <div
@@ -108,10 +113,10 @@ export default function DocumentsPage() {
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           className={cn(
-            "rounded-xl border-2 border-dashed p-8 text-center transition-colors",
+            "border border-dashed px-6 py-10 text-center transition-colors",
             dragging
-              ? "border-brand-500 bg-brand-500/6"
-              : "border-line bg-surface-900 hover:border-line-strong",
+              ? "border-brand-500 bg-brand-500/[0.04]"
+              : "border-line-strong bg-surface-900 hover:border-ink-400",
           )}
         >
           <input
@@ -126,37 +131,31 @@ export default function DocumentsPage() {
             }}
           />
 
-          <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-brand-500/12 text-brand-400">
-            <FileUp className="h-5 w-5" aria-hidden />
-          </span>
-          <p className="mt-3 text-sm font-medium text-ink-100">
-            Drop files here or{" "}
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="focus-ring text-brand-400 underline-offset-2 hover:underline"
-            >
-              browse
-            </button>
-          </p>
-          <p className="mt-1 text-xs text-ink-400">
-            Files are stored per workspace and never shared across tenants.
+          <p className="label-caps">01 / Ingest</p>
+          <h2 className="display mt-3 text-3xl">Drop filings here.</h2>
+          <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-ink-400">
+            Files are parsed, chunked and indexed in this workspace only. Retrieval never crosses
+            tenants.
           </p>
 
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="focus-ring mt-5 border-b border-brand-500 pb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-brand-500 transition-colors hover:text-brand-600"
+          >
+            Browse files →
+          </button>
+
+          <div className="mx-auto mt-7 flex max-w-2xl flex-wrap justify-center gap-x-6 gap-y-2 border-t border-line pt-4">
             {SUPPORTED_FILE_TYPES.map(({ ext, label, hint }) => (
-              <span
-                key={ext}
-                title={hint}
-                className="rounded-lg border border-line bg-surface-850 px-3 py-1.5 text-[11px] text-ink-300"
-              >
-                <span className="font-semibold text-ink-200">{label}</span> {ext}
+              <span key={ext} title={hint} className="font-mono text-[10px] uppercase tracking-wider text-ink-400">
+                <span className="text-ink-200">{label}</span> {ext}
               </span>
             ))}
           </div>
 
           {upload.isPending && (
-            <p className="mt-4 flex items-center justify-center gap-2 text-xs text-brand-400">
+            <p className="mt-4 flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-wider text-brand-500">
               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
               Uploading…
             </p>
@@ -176,35 +175,30 @@ export default function DocumentsPage() {
             <Badge tone="neutral">{documents?.length ?? 0} files</Badge>
           </CardHeader>
 
-          <CardContent className="p-0">
+          <CardContent>
             {isLoading ? (
               <LoadingState label="Loading documents…" />
             ) : !documents?.length ? (
-              <div className="p-5">
-                <EmptyState
-                  icon={FileUp}
-                  title="No documents yet"
-                  description="Upload an annual report, model or transcript to extend what FinSight can cite."
-                />
-              </div>
+              <EmptyState
+                icon={FileUp}
+                title="No documents yet"
+                description="Upload an annual report, model or transcript to extend what FinSight can cite."
+              />
             ) : (
-              <ul className="divide-y divide-line">
+              <ul>
                 {documents.map((document) => {
                   const Icon = iconForFile(document.filename);
                   return (
-                    <li
-                      key={document.id}
-                      className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-850/60"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-800 text-ink-300">
+                    <li key={document.id} className="ledger-row">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center border border-line bg-surface-850 text-ink-400">
                         <Icon className="h-4 w-4" aria-hidden />
                       </span>
 
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-ink-100">
+                        <span className="block truncate font-serif text-base text-ink-100">
                           {document.filename}
                         </span>
-                        <span className="mt-0.5 flex items-center gap-2 text-[11px] text-ink-400">
+                        <span className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-ink-400">
                           <span>{formatBytes(document.size_bytes)}</span>
                           <span>·</span>
                           <span>{document.chunk_count} chunks</span>
@@ -212,37 +206,36 @@ export default function DocumentsPage() {
                           <span>{formatDate(document.created_at)}</span>
                         </span>
                         {document.error && (
-                          <span className="mt-1 block truncate text-[11px] text-bear">
+                          <span className="mt-1 block truncate font-mono text-[10px] text-bear">
                             {document.error}
                           </span>
                         )}
                       </span>
 
-                      <span className="flex shrink-0 items-center gap-2">
+                      <span className="flex shrink-0 items-center gap-3">
                         <span className="flex items-center gap-1.5">
                           <StatusIcon status={document.status} />
                           <Badge tone={statusTone(document.status)}>{document.status}</Badge>
                         </span>
 
-                        <Button
-                          variant="ghost"
-                          size="icon"
+                        <button
+                          type="button"
                           title="Reprocess"
                           onClick={() => reprocess.mutate(document.id)}
                           disabled={reprocess.isPending}
+                          className="focus-ring border border-transparent p-1.5 text-ink-400 transition-colors hover:border-line hover:text-ink-100"
                         >
                           <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
+                        </button>
+                        <button
+                          type="button"
                           title="Delete"
                           onClick={() => remove.mutate(document.id)}
                           disabled={remove.isPending}
-                          className="hover:text-bear"
+                          className="focus-ring border border-transparent p-1.5 text-ink-400 transition-colors hover:border-line hover:text-bear"
                         >
                           <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                        </Button>
+                        </button>
                       </span>
                     </li>
                   );
@@ -274,9 +267,9 @@ function MiniStat({
   tone?: string;
 }) {
   return (
-    <div className="card p-4">
+    <div className="bg-surface-900 p-5">
       <p className="label-caps">{label}</p>
-      <p className={cn("num mt-1 text-2xl font-semibold", tone)}>
+      <p className={cn("num mt-3 text-3xl leading-none", tone)}>
         {value.toLocaleString("en-IN")}
       </p>
     </div>

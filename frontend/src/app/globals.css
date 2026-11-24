@@ -1,43 +1,50 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   FinSight AI design tokens (Tailwind v4 `@theme`)
-   A dark, data-dense "terminal" palette tuned for long research sessions.
+   FinSight AI — "research desk" design system.
+
+   Paper, ink, hairlines and a single vermilion signal colour. Deliberately
+   editorial rather than glassy/gradient SaaS: square corners, serif display,
+   monospaced figures, tabular ledgers and no decorative glow.
 --------------------------------------------------------------------------- */
 @theme {
-  --color-surface-950: #070a12;
-  --color-surface-900: #0b0f1a;
-  --color-surface-850: #0f1422;
-  --color-surface-800: #141a2b;
-  --color-surface-700: #1c2438;
-  --color-surface-600: #2a3450;
+  /* Surfaces: page -> paper -> raised paper */
+  --color-surface-950: #eeece4;
+  --color-surface-900: #faf8f2;
+  --color-surface-850: #f4f1e9;
+  --color-surface-800: #e9e5da;
+  --color-surface-700: #ddd7c9;
 
-  --color-line: #1e2740;
-  --color-line-strong: #2c3757;
+  /* Rules */
+  --color-line: #d2ccbe;
+  --color-line-strong: #b3aa98;
 
-  --color-ink-100: #eef2fa;
-  --color-ink-200: #c8d1e4;
-  --color-ink-300: #98a3bd;
-  --color-ink-400: #6b7794;
+  /* Ink */
+  --color-ink-100: #191a15;
+  --color-ink-200: #38392f;
+  --color-ink-300: #5d5e51;
+  --color-ink-400: #878779;
 
-  --color-brand-300: #6ee7c8;
-  --color-brand-400: #34d3aa;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
+  /* Signal */
+  --color-brand-300: #8f2c17;
+  --color-brand-400: #ad361d;
+  --color-brand-500: #b73c21;
+  --color-brand-600: #8f2c17;
 
-  --color-bull: #34d399;
-  --color-bear: #fb7185;
-  --color-warn: #fbbf24;
+  --color-bull: #176b4c;
+  --color-bear: #a32b2b;
+  --color-warn: #8a6200;
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-mono: "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
 
-  --radius-card: 14px;
+  --radius-card: 2px;
 }
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html {
@@ -52,13 +59,26 @@
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--color-brand-500) 35%, transparent);
+    background-color: color-mix(in srgb, var(--color-brand-500) 22%, transparent);
   }
 
-  /* Slim scrollbars - this is a dense data UI */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-surface-600) transparent;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  button, input, textarea, select {
+    border-radius: 2px;
   }
 }
 
@@ -67,11 +87,11 @@
     background-color: var(--color-surface-900);
     border: 1px solid var(--color-line);
     border-radius: var(--radius-card);
+    box-shadow: none;
   }
 
   .card-hover {
-    transition: border-color 160ms ease, background-color 160ms ease,
-      transform 160ms ease;
+    transition: border-color 140ms ease, background-color 140ms ease;
   }
   .card-hover:hover {
     border-color: var(--color-line-strong);
@@ -79,9 +99,10 @@
   }
 
   .label-caps {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-ink-400);
   }
@@ -89,7 +110,7 @@
   .num {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 
   .focus-ring {
@@ -99,34 +120,158 @@
     outline: 2px solid var(--color-brand-500);
     outline-offset: 2px;
   }
+
+  .hairline-input {
+    width: 100%;
+    border: 1px solid var(--color-line-strong);
+    background-color: var(--color-surface-900);
+    color: var(--color-ink-100);
+    border-radius: 2px;
+  }
+  .hairline-input::placeholder {
+    color: var(--color-ink-400);
+  }
+  .hairline-input:focus {
+    border-color: var(--color-brand-500);
+    outline: none;
+  }
 }
 
 @layer utilities {
-  .glow-brand {
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-500) 30%, transparent),
-      0 8px 30px -12px color-mix(in srgb, var(--color-brand-500) 45%, transparent);
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.04;
   }
 
-  .text-bull {
-    color: var(--color-bull);
+  .serif-body {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.55;
   }
-  .text-bear {
-    color: var(--color-bear);
+
+  .rule-t { border-top: 1px solid var(--color-line); }
+  .rule-b { border-bottom: 1px solid var(--color-line); }
+
+  .paper-grain {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in srgb, var(--color-ink-400) 12%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 5px 5px;
+  }
+
+  .grid-backdrop {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--color-line) 75%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 75%, transparent) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 94%);
+  }
+
+  .citation-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    padding: 0 0.2rem;
+    border: 1px solid color-mix(in srgb, var(--color-brand-500) 45%, transparent);
+    background-color: color-mix(in srgb, var(--color-brand-500) 10%, transparent);
+    color: var(--color-brand-300);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    line-height: 1;
+    vertical-align: super;
+  }
+  .citation-mark:hover {
+    background-color: var(--color-brand-500);
+    color: var(--color-surface-900);
+  }
+
+  .progress-track {
+    height: 3px;
+    background-color: var(--color-surface-700);
+  }
+  .progress-fill {
+    height: 100%;
+    background-color: var(--color-ink-300);
   }
 }
 
-/* Subtle grid backdrop used on the marketing/landing page */
-.grid-backdrop {
-  background-image: linear-gradient(
-      to right,
-      color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+/* ---------------------------------------------------------------------------
+   Editorial hardening: neutralise the rounded/glowing utility vocabulary used
+   by the components so the whole app reads as one printed surface. Circular
+   avatars/dots use rounded-full and are intentionally untouched.
+--------------------------------------------------------------------------- */
+.rounded-md,
+.rounded-lg,
+.rounded-xl,
+.rounded-2xl {
+  border-radius: 2px !important;
+}
+
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  box-shadow: none !important;
+}
+
+.backdrop-blur,
+.backdrop-blur-sm {
+  backdrop-filter: none !important;
+}
+
+/* Ledger tables: hairline rules, no zebra, numbers aligned right. */
+.ledger {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.ledger th,
+.ledger td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.7rem 0.9rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.ledger th:first-child,
+.ledger td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.ledger th:last-child,
+.ledger td:last-child {
+  padding-right: 0;
+}
+.ledger thead th {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-400);
+}
+.ledger tbody tr {
+  transition: background-color 120ms ease;
+}
+.ledger tbody tr:hover {
+  background-color: color-mix(in srgb, var(--color-brand-500) 4%, transparent);
+}
+
+/* Ledger-style list rows used for documents, threads and runs. */
+.ledger-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.8rem 0;
+  transition: background-color 120ms ease;
+}
+.ledger-row:last-child {
+  border-bottom: 0;
+}
+.ledger-row:hover {
+  background-color: color-mix(in srgb, var(--color-brand-500) 4%, transparent);
 }

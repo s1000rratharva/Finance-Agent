@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
 
 const TONES: Record<Tone, string> = {
-  neutral: "bg-surface-700 text-ink-300 border-line",
-  success: "bg-bull/12 text-bull border-bull/25",
-  warning: "bg-warn/12 text-warn border-warn/25",
-  danger: "bg-bear/12 text-bear border-bear/25",
-  info: "bg-sky-400/12 text-sky-300 border-sky-400/25",
-  brand: "bg-brand-500/12 text-brand-300 border-brand-500/25",
+  neutral: "bg-transparent text-ink-300 border-line",
+  success: "bg-transparent text-bull border-bull/40",
+  warning: "bg-transparent text-warn border-warn/40",
+  danger: "bg-transparent text-bear border-bear/40",
+  info: "bg-transparent text-[#1F4E79] border-[#1F4E79]/40",
+  brand: "bg-brand-500 text-surface-900 border-brand-500",
 };
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -23,8 +23,8 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
     <span
       ref={ref}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5",
-        "text-[11px] font-medium leading-5 whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5",
+        "font-mono text-[10px] font-medium uppercase tracking-[0.08em] leading-4 whitespace-nowrap",
         TONES[tone],
         className,
       )}

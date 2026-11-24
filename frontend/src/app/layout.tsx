@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: `%s · ${APP_NAME}`,
   },
   description:
-    "AI-powered financial research platform: hybrid RAG with citations, SQL and Python analytics, agentic task routing and interactive charts.",
+    "Financial research with sources you can check. Hybrid RAG, SQL and Python analytics, agentic routing and page-level citations.",
   applicationName: APP_NAME,
 };
 

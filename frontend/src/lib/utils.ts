@@ -24,15 +24,16 @@ export function slugHue(slug: string): number {
   return hash;
 }
 
+/** Muted, print-inspired series palette: stable across comparisons. */
 export const CHART_COLORS = [
-  "#34d3aa", // brand green
-  "#60a5fa", // blue
-  "#fbbf24", // amber
-  "#c084fc", // violet
-  "#fb7185", // rose
-  "#22d3ee", // cyan
-  "#a3e635", // lime
-  "#f472b6", // pink
+  "#B73C21", // vermilion
+  "#1F4E79", // ink blue
+  "#8A6200", // ochre
+  "#176B4C", // forest
+  "#6B3E6B", // plum
+  "#4B5560", // slate
+  "#9A4F2C", // sienna
+  "#2F6F6B", // teal
 ];
 
 export function colorForIndex(index: number): string {

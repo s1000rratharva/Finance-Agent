@@ -29,6 +29,13 @@ function scoreTone(value: number | null | undefined): string {
   return "text-bear";
 }
 
+function scoreFill(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "bg-ink-400";
+  if (value >= 0.8) return "bg-bull";
+  if (value >= 0.6) return "bg-warn";
+  return "bg-bear";
+}
+
 export default function EvaluationsPage() {
   const { data: runs, isLoading } = useEvaluationRuns();
   const runEvaluation = useRunEvaluation();
@@ -69,41 +76,37 @@ export default function EvaluationsPage() {
         </Button>
       }
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         {/* Latest scores */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {SCORE_KEYS.map(({ key, label, hint }) => {
-            const value = latest?.scores?.[key as keyof typeof latest.scores] ?? null;
-            return (
-              <div key={key} className="card card-hover p-4" title={hint}>
-                <p className="label-caps">{label}</p>
-                <p className={cn("num mt-2 text-3xl font-semibold", scoreTone(value))}>
-                  {value === null || value === undefined ? (
-                    <span className="text-xl text-ink-400">—</span>
-                  ) : (
-                    value.toFixed(3)
-                  )}
-                </p>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-700">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      value !== null && value >= 0.8
-                        ? "bg-bull"
-                        : value !== null && value >= 0.6
-                          ? "bg-warn"
-                          : "bg-bear/70",
-                    )}
-                    style={{ width: `${Math.round((value ?? 0) * 100)}%` }}
-                  />
+        <section>
+          <div className="mb-4 flex items-center gap-3">
+            <p className="label-caps">Latest run · quality gates</p>
+            <span className="h-px flex-1 bg-line" aria-hidden />
+          </div>
+
+          <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {SCORE_KEYS.map(({ key, label, hint }) => {
+              const value = latest?.scores?.[key as keyof typeof latest.scores] ?? null;
+              return (
+                <div key={key} className="bg-surface-900 p-5" title={hint}>
+                  <p className="label-caps">{label}</p>
+                  <p className={cn("num mt-3 text-3xl leading-none", scoreTone(value))}>
+                    {value === null || value === undefined ? "—" : value.toFixed(3)}
+                  </p>
+                  <div className="progress-track mt-4">
+                    <div
+                      className={cn("progress-fill", scoreFill(value))}
+                      style={{ width: `${Math.round((value ?? 0) * 100)}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </section>
 
         {/* Explain + run history */}
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader className="flex-row items-center justify-between">
               <div>
@@ -114,21 +117,19 @@ export default function EvaluationsPage() {
               </div>
               <Badge tone="neutral">{runs?.length ?? 0} runs</Badge>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent>
               {isLoading ? (
                 <LoadingState label="Loading runs…" />
               ) : !runs?.length ? (
-                <div className="p-5">
-                  <EmptyState
-                    icon={Gauge}
-                    title="No evaluation runs yet"
-                    description="Run an evaluation against data/eval/default.json to get a quality baseline."
-                  />
-                </div>
+                <EmptyState
+                  icon={Gauge}
+                  title="No evaluation runs yet"
+                  description="Run an evaluation against data/eval/default.json to get a quality baseline."
+                />
               ) : (
-                <ul className="divide-y divide-line">
+                <ul>
                   {runs.map((run) => (
-                    <li key={run.id} className="flex items-center gap-4 px-5 py-3">
+                    <li key={run.id} className="ledger-row">
                       <Badge
                         tone={
                           run.status === "completed"
@@ -141,15 +142,16 @@ export default function EvaluationsPage() {
                         {run.status}
                       </Badge>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-ink-100">
+                        <span className="block font-serif text-base text-ink-100">
                           {run.dataset_name}
                         </span>
-                        <span className="text-[11px] text-ink-400">
-                          {formatNumber(run.sample_count)} samples ·{" "}
-                          {formatDateTime(run.created_at)}
+                        <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-ink-400">
+                          {formatNumber(run.sample_count)} samples · {formatDateTime(run.created_at)}
                         </span>
                         {run.error && (
-                          <span className="block truncate text-[11px] text-bear">{run.error}</span>
+                          <span className="mt-1 block truncate font-mono text-[10px] text-bear">
+                            {run.error}
+                          </span>
                         )}
                       </span>
                       <span className="num shrink-0 text-xs text-ink-300">
@@ -168,20 +170,26 @@ export default function EvaluationsPage() {
             <CardHeader>
               <CardTitle>What RAGAS measures</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {SCORE_KEYS.map(({ key, label, hint }) => (
-                <div key={key} className="rounded-lg border border-line bg-surface-850 p-3">
-                  <p className="text-xs font-medium text-ink-200">{label}</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-ink-400">{hint}</p>
-                </div>
-              ))}
-              <p className="rounded-lg border border-line bg-surface-850 p-3 text-[11px] leading-relaxed text-ink-400">
-                Datasets live in <span className="num text-ink-300">data/eval/*.json</span>. Add
-                question/reference pairs there to grow the suite.
-              </p>
-              <p className="text-[11px] leading-relaxed text-ink-400">
-                If RAGAS is not installed (Python ≥ 3.13), FinSight falls back to a
-                retrieval-only context-recall proxy so the harness still gives signal.
+            <CardContent>
+              <ol>
+                {SCORE_KEYS.map(({ key, label, hint }, index) => (
+                  <li key={key} className="ledger-row items-start">
+                    <span className="num w-5 shrink-0 pt-0.5 text-[10px] text-brand-500">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>
+                      <span className="block text-xs font-medium text-ink-100">{label}</span>
+                      <span className="mt-1 block text-[11px] leading-relaxed text-ink-400">
+                        {hint}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-4 border-l-2 border-line pl-3 font-mono text-[10px] uppercase leading-relaxed tracking-wider text-ink-400">
+                Datasets live in <span className="text-ink-200">data/eval/*.json</span>. Add question
+                and reference pairs there to grow the suite. If RAGAS is unavailable, FinSight
+                falls back to a retrieval-only context-recall proxy.
               </p>
             </CardContent>
           </Card>
