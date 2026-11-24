@@ -154,8 +154,18 @@ Copy-Item backend\.env.example backend\.env
 Copy-Item frontend\.env.example frontend\.env.local
 ```
 
-Set `GROQ_API_KEY` in `.env` (get one at <https://console.groq.com/keys>).
-Everything else has working defaults.
+The three files are read by different processes:
+
+| File | Read by | What to set |
+| --- | --- | --- |
+| `.env` | `docker compose` | Postgres/MinIO passwords, `JWT_SECRET`, `GROQ_API_KEY`, CORS, public API URL |
+| `backend/.env` | `uvicorn` / the backend container when run outside compose | `DATABASE_URL`, Chroma host/port, `GROQ_API_KEY`, auth/S3 settings |
+| `frontend/.env.local` | Next.js | `NEXT_PUBLIC_API_URL` |
+
+Put a **new** Groq key (get one at <https://console.groq.com/keys>) in
+`backend/.env` when following steps 3–4, or in root `.env` when using
+`docker compose up --build`. Everything else has working local defaults.
+Never commit these files.
 
 ### 2. Start infrastructure
 
@@ -315,12 +325,74 @@ npm run build
 | 2 | **Render** | FastAPI web service + Docker runtime; managed Postgres add-on |
 | 3 | **Neon** | Serverless Postgres — create branches per environment, set `DATABASE_URL` |
 | 4 | **Cloudflare R2** | Set `S3_ENDPOINT_URL`, `S3_BUCKET`, R2 access/secret keys; no egress fees |
-| 5 | **Docker** | `backend/Dockerfile` + `frontend/Dockerfile` are ready; add a production compose override |
+| 5 | **Chroma** | Self-host `chromadb/chroma:1.5.9` with a persistent `/data` volume, or use Chroma Cloud (needs a `CloudClient` adapter) |
+| 6 | **Docker** | `backend/Dockerfile` + `frontend/Dockerfile` are ready; add a production compose override |
+
+### ChromaDB in production
+
+Chroma is a **derived index**, not the source of truth. Postgres keeps the text
+chunks; each workspace gets a collection named `ws_<workspace_id>`. A fresh
+Chroma instance therefore needs `python -m scripts.seed` and reprocessing of
+uploaded documents (`POST /api/v1/documents/{id}/reprocess`) before RAG returns
+citations. `CHROMA_COLLECTION` in the env file is informational only.
+
+**Option A — self-hosted Chroma server (works with the current code)**
+
+Run the official image as its own service with a persistent volume/disk mounted
+at `/data`. Chroma moved its container data path from `/chroma/chroma` to `/data`
+in v1.0, and this repo pins 1.5.9.
+
+```yaml
+chroma:
+  image: chromadb/chroma:1.5.9
+  environment:
+    CHROMA_PERSIST_PATH: /data
+    ANONYMIZED_TELEMETRY: "FALSE"
+  volumes:
+    - chromadata:/data
+  ports:
+    - "8001:8000"   # host port; the container listens on 8000
+```
+
+Backend settings for that service:
+
+```env
+CHROMA_HOST=chroma     # service DNS name inside the network, not localhost
+CHROMA_PORT=8000       # internal container port
+```
+
+On Render, create a Docker web service from `chromadb/chroma:1.5.9`, attach a
+persistent disk at `/data`, keep it at **one instance** (Render disks are bound
+to a single service instance), and set `CHROMA_HOST` to the internal hostname,
+for example `finsight-chroma:8000`.
+
+**Option B — Chroma Cloud (managed/serverless)**
+
+Create a database at <https://trychroma.com> and use the values from its Connect
+panel:
+
+```env
+CHROMA_HOST=api.trychroma.com   # or the region-specific endpoint
+CHROMA_PORT=443
+CHROMA_API_KEY=...
+CHROMA_TENANT=...
+CHROMA_DATABASE=...
+```
+
+`backend/app/services/rag/vector_store.py` currently constructs an
+`HttpClient`; Cloud needs `CloudClient` with API-key auth. Ask for that adapter
+before choosing Option B. Option A needs no code changes.
+
+Do **not** use in-memory/embedded Chroma in production, and never point a
+serverless backend at `localhost`.
 
 Pre-deployment checklist
 
 - [ ] Rotate `JWT_SECRET` to ≥ 32 random bytes (`openssl rand -hex 32`)
-- [ ] Set `ENVIRONMENT=production` (enables JSON logging, secure cookies)
+- [ ] Set `ENVIRONMENT=production` (JSON logging) and `GROQ_API_KEY`
+- [ ] Set `COOKIE_SECURE=true`. Keep `COOKIE_SAMESITE=lax` behind the same-origin `/backend` rewrite; use `none` only for a cross-site API + frontend. `ENVIRONMENT=production` alone does not change cookie flags.
+- [ ] Set `CORS_ORIGINS` to the exact frontend origin(s) when calling the API directly
+- [ ] Give Chroma a persistent `/data` volume and reindex/seed it after first deploy
 - [ ] Replace sample company data with audited figures
 - [ ] Run Alembic migrations instead of `create_all`
 - [ ] Move document processing to a real worker (Celery/Arq) for large uploads

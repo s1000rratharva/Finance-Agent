@@ -7,6 +7,8 @@ x-backend-env: &backend-env
   POSTGRES_DB: ${POSTGRES_DB:-finsight}
   JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
   JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-1440}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
   GROQ_API_KEY: ${GROQ_API_KEY:-}
   GROQ_CHAT_MODEL: ${GROQ_CHAT_MODEL:-llama-3.3-70b-versatile}
   GROQ_EMBED_MODEL: ${GROQ_EMBED_MODEL:-}
@@ -43,8 +45,10 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - chromadata:/chroma/chroma
+      # Chroma moved its container data path from /chroma/chroma to /data in v1.0.
+      - chromadata:/data
     environment:
+      CHROMA_PERSIST_PATH: /data
       ANONYMIZED_TELEMETRY: "FALSE"
 
   minio:
